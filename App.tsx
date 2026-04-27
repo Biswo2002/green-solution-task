@@ -1,45 +1,47 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import { StatusBar, useColorScheme } from 'react-native';
+import { Provider } from 'react-redux';
+import React from 'react';
+import ErrorBoundary from '$/components/core/ErrorBoundary';
+import { store } from './src/redux/store';
+import Route from './src/Routes';
 import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+  navigationRef,
+  flushNavigationQueue,
+  isReadyRef,
+} from './src/routes/private/navigationService';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Provider store={store}>
+          <SafeAreaProvider>
+            <NavigationContainer
+              ref={navigationRef}
+              onReady={() => {
+                isReadyRef.current = true;
+                flushNavigationQueue();
+              }}
+            >
+              <StatusBar
+                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+              />
+              <Route />
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </Provider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;
