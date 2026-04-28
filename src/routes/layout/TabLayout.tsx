@@ -240,7 +240,7 @@ const TabLayout = () => {
     >
       <Tab.Screen name="Chats" component={Private.ChatsScreen} />
       <Tab.Screen name="Channels" component={Private.ChannelsScreen} />
-      <Tab.Screen name="SOS" component={Private.SosScreen} />
+      <Tab.Screen name="SOS" component={Private.SosLanding} />
       <Tab.Screen name="Profile" component={Private.ProfileScreen} />
     </Tab.Navigator>
   );
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   indicator: {
     position: 'absolute',
     top: 0,
-    height: 3,
+    height: 1.5,
     backgroundColor: '#0070C0',
   },
 });
