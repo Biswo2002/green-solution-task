@@ -30,9 +30,9 @@ const Routes = () => {
     return <SplashScreen />;
   }
 
-  if (appState === 'permissions') {
-    return <PermissionsScreen onComplete={() => setAppState('ready')} />;
-  }
+  // if (appState === 'permissions') {
+  //   return <PermissionsScreen onComplete={() => setAppState('ready')} />;
+  // }
 
   return <PrivateRoutes />;
 };
