@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TextInput, FlatList, TouchableOpacity, SafeAreaView, StatusBar, Modal, TouchableWithoutFeedback, LayoutAnimation, Platform, UIManager, Image, Animated, Alert } from 'react-native';
+import { StyleSheet, Text, View, TextInput, FlatList, TouchableOpacity, SafeAreaView, StatusBar, Modal, TouchableWithoutFeedback, LayoutAnimation, Platform, UIManager, Image, Animated, Alert, PermissionsAndroid } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
-import { pickImageNative, pickDocumentNative, startRecordingNative, stopRecordingNative, playAudioNative, stopAudioNative } from '$/utils/nativeModules';
+import { pickImageNative, pickDocumentNative, startRecordingNative, stopRecordingNative, playAudioNative, stopAudioNative, getRecentImagesNative } from '$/utils/nativeModules';
+import type { PickedDocument, PickedImage, RecentImage } from '$/utils/nativeModules';
+import { triggerHaptic } from '$/utils/haptics';
 
 const MOCK_MESSAGES: any[] = [
     { id: '1', type: 'text', text: 'Good morning sir. The vaccination drive report for Varanasi district is ready.', time: '9:30 AM', isSent: false },
@@ -12,6 +14,11 @@ const MOCK_MESSAGES: any[] = [
 ];
 
 const ChatDetails = () => {
+    type PendingAttachment =
+        | { type: 'image'; data: PickedImage }
+        | { type: 'document'; data: PickedDocument }
+        | { type: 'audio'; data: { uri: string; durationLabel: string } };
+
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const isGroup = route.params?.isGroup;
@@ -22,25 +29,98 @@ const ChatDetails = () => {
     const [isMuteVisible, setIsMuteVisible] = useState(false);
     const [selectedMuteOption, setSelectedMuteOption] = useState('8 hours');
     const [isAttachmentVisible, setIsAttachmentVisible] = useState(false);
-    
+    const [recentImages, setRecentImages] = useState<RecentImage[]>([]);
+    const [isLoadingRecentImages, setIsLoadingRecentImages] = useState(false);
+    const [selectedRecentImages, setSelectedRecentImages] = useState<RecentImage[]>([]);
+    const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
+    const [isPreviewAudioPlaying, setIsPreviewAudioPlaying] = useState(false);
+
     // Premium Features States
     const [isTyping, setIsTyping] = useState(false);
     const [selectedMessageAction, setSelectedMessageAction] = useState<string | null>(null);
-    
+
     // Custom Recording UI States
     const [isRecording, setIsRecording] = useState(false);
     const [recordDuration, setRecordDuration] = useState(0);
     const recordingInterval = useRef<any>(null);
     const pulseAnim = useRef(new Animated.Value(1)).current;
+    const previewAudioProgressAnim = useRef(new Animated.Value(0)).current;
+    const recordStartX = useRef(0);
+    const [isRecordCancelled, setIsRecordCancelled] = useState(false);
 
     // Audio Playback State
     const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+    const getReadableNativeError = (error: any, fallbackMessage: string) => {
+        if (!error?.code) return fallbackMessage;
+        const code = String(error.code);
+        if (code === 'cancelled') return '';
+        if (code === 'permission_denied') return 'Required permission is denied. Please allow access in settings.';
+        if (code.includes('no_activity') || code.includes('no_controller')) return 'Unable to open picker right now. Please try again.';
+        if (code.includes('busy')) return 'Another picker or recorder request is already running.';
+        if (code.includes('not_recording')) return 'No active recording found.';
+        if (code.includes('playback_error')) return 'Unable to preview this audio.';
+        return error?.message || fallbackMessage;
+    };
+
+
+    const formatBytes = (bytes?: number) => {
+        if (!bytes || bytes <= 0) return 'Unknown size';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let size = bytes;
+        let index = 0;
+        while (size >= 1024 && index < units.length - 1) {
+            size /= 1024;
+            index += 1;
+        }
+        return `${size.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+    };
+
+    const requestAudioPermissionIfNeeded = async () => {
+        if (Platform.OS !== 'android') return true;
+        const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
+        return status === PermissionsAndroid.RESULTS.GRANTED;
+    };
+
+    const requestGalleryPermissionIfNeeded = async () => {
+        if (Platform.OS !== 'android') return true;
+        const sdkVersion = Number(Platform.Version);
+        if (sdkVersion >= 33) {
+            const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES);
+            return status === PermissionsAndroid.RESULTS.GRANTED;
+        }
+        const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
+        return status === PermissionsAndroid.RESULTS.GRANTED;
+    };
 
     useEffect(() => {
         if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
             UIManager.setLayoutAnimationEnabledExperimental(true);
         }
     }, []);
+
+    useEffect(() => {
+        const loadRecentImages = async () => {
+            if (!isAttachmentVisible) return;
+            setIsLoadingRecentImages(true);
+
+            const hasPermission = await requestGalleryPermissionIfNeeded();
+            if (!hasPermission) {
+                setRecentImages([]);
+                setIsLoadingRecentImages(false);
+                return;
+            }
+
+            try {
+                const mediaItems = await getRecentImagesNative(40);
+                setRecentImages(mediaItems || []);
+            } catch (error) {
+                setRecentImages([]);
+            } finally {
+                setIsLoadingRecentImages(false);
+            }
+        };
+        loadRecentImages();
+    }, [isAttachmentVisible]);
 
     const sendMessage = (payload: any) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -74,11 +154,20 @@ const ChatDetails = () => {
         }
     };
 
-    const handleRecordStart = async () => {
+    const handleRecordStart = async (pageX: number) => {
+        const hasPermission = await requestAudioPermissionIfNeeded();
+        if (!hasPermission) {
+            Alert.alert("Permission Required", "Microphone permission is required to record audio.");
+            return;
+        }
+
+        recordStartX.current = pageX;
+        setIsRecordCancelled(false);
         setIsRecording(true);
         setRecordDuration(0);
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        
+        triggerHaptic('selection');
+
         recordingInterval.current = setInterval(() => {
             setRecordDuration(prev => prev + 1);
         }, 1000);
@@ -92,70 +181,171 @@ const ChatDetails = () => {
 
         try {
             await startRecordingNative();
-        } catch (e) {
-            console.log("Native AudioRecorder not implemented yet.");
+        } catch (e: any) {
+            setIsRecording(false);
+            const message = getReadableNativeError(e, "Unable to start recording.");
+            if (message) Alert.alert("Recorder Error", message);
         }
     };
 
-    const handleRecordStop = async () => {
+    const handleRecordStop = async (releasePageX: number) => {
+        const didCancel = recordStartX.current - releasePageX > 80;
+        setIsRecordCancelled(didCancel);
         setIsRecording(false);
         pulseAnim.stopAnimation();
         if (recordingInterval.current) {
             clearInterval(recordingInterval.current);
         }
-        
+
         let audioUri = '';
         try {
             audioUri = await stopRecordingNative();
-        } catch (e) {
-            console.log("Native AudioRecorder not implemented yet.");
+        } catch (e: any) {
+            const message = getReadableNativeError(e, "Unable to stop recording.");
+            if (message) Alert.alert("Recorder Error", message);
         }
 
-        if (recordDuration > 0) {
+        if (!didCancel && recordDuration > 0 && audioUri) {
             const mins = Math.floor(recordDuration / 60);
             const secs = recordDuration % 60;
             const durationStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            sendMessage({ type: 'audio', duration: durationStr, uri: audioUri });
+            setPendingAttachment({ type: 'audio', data: { uri: audioUri, durationLabel: durationStr } });
+            triggerHaptic('medium');
+        } else if (didCancel) {
+            triggerHaptic('warning');
         }
     };
 
     const handlePickImage = async () => {
         setIsAttachmentVisible(false);
+        setSelectedRecentImages([]);
+        triggerHaptic('selection');
         try {
-            const uri = await pickImageNative();
-            if (uri) sendMessage({ type: 'image', mediaUri: uri });
+            const image = await pickImageNative('gallery');
+            if (image?.uri) {
+                setPendingAttachment({ type: 'image', data: image });
+                triggerHaptic('medium');
+            }
         } catch (e: any) {
-            Alert.alert("Native Module Error", e.message || "MediaPicker not implemented.");
-            // Fallback for UI testing
-            sendMessage({ type: 'image', mediaUri: 'https://picsum.photos/400/400?random=1' });
+            const message = getReadableNativeError(e, "Unable to pick image.");
+            if (message) Alert.alert("Media Error", message);
         }
     };
 
     const handleCamera = async () => {
         setIsAttachmentVisible(false);
+        setSelectedRecentImages([]);
+        triggerHaptic('selection');
         try {
-            const uri = await pickImageNative();
-            if (uri) sendMessage({ type: 'image', mediaUri: uri });
+            const image = await pickImageNative('camera');
+            if (image?.uri) {
+                setPendingAttachment({ type: 'image', data: image });
+                triggerHaptic('medium');
+            }
         } catch (e: any) {
-            Alert.alert("Native Module Error", e.message || "MediaPicker not implemented.");
-            sendMessage({ type: 'image', mediaUri: 'https://picsum.photos/400/400?random=2' });
+            const message = getReadableNativeError(e, "Unable to capture image.");
+            if (message) Alert.alert("Camera Error", message);
         }
     };
 
     const handleMockDocument = async () => {
         setIsAttachmentVisible(false);
+        setSelectedRecentImages([]);
+        triggerHaptic('selection');
         try {
             const doc = await pickDocumentNative();
-            sendMessage({ type: 'document', fileName: doc.name, fileSize: doc.size });
+            if (doc?.uri) {
+                setPendingAttachment({ type: 'document', data: doc });
+                triggerHaptic('medium');
+            }
         } catch (e: any) {
-            Alert.alert("Native Module Error", e.message || "MediaPicker not implemented.");
-            sendMessage({ type: 'document', fileName: 'Financial_Q3_Report.pdf', fileSize: '1.2 MB' });
+            const message = getReadableNativeError(e, "Unable to pick document.");
+            if (message) Alert.alert("Document Error", message);
         }
     };
 
     const handleMockAudio = () => {
         setIsAttachmentVisible(false);
-        sendMessage({ type: 'audio', duration: '0:14' });
+        setSelectedRecentImages([]);
+        Alert.alert("Record Audio", "Use the mic button to record and preview audio before sending.");
+    };
+
+    const handleSelectRecentImage = (image: RecentImage) => {
+        if (!image?.uri) return;
+        setSelectedRecentImages(prev => {
+            const isAlreadySelected = prev.some(item => item.uri === image.uri);
+            if (isAlreadySelected) {
+                triggerHaptic('selection');
+                return prev.filter(item => item.uri !== image.uri);
+            }
+            triggerHaptic('selection');
+            return [...prev, image];
+        });
+    };
+
+    const handleSendSelectedRecentImages = () => {
+        if (selectedRecentImages.length === 0) return;
+        selectedRecentImages.forEach((image) => {
+            sendMessage({ type: 'image', mediaUri: image.uri });
+        });
+        triggerHaptic('success');
+        setSelectedRecentImages([]);
+        setIsAttachmentVisible(false);
+    };
+
+    const handleConfirmAttachmentSend = () => {
+        if (!pendingAttachment) return;
+        if (pendingAttachment.type === 'image') {
+            sendMessage({ type: 'image', mediaUri: pendingAttachment.data.uri });
+        } else if (pendingAttachment.type === 'document') {
+            sendMessage({
+                type: 'document',
+                fileName: pendingAttachment.data.name,
+                fileSize: formatBytes(pendingAttachment.data.size),
+            });
+        } else {
+            sendMessage({ type: 'audio', duration: pendingAttachment.data.durationLabel, uri: pendingAttachment.data.uri });
+        }
+        setPendingAttachment(null);
+        setIsPreviewAudioPlaying(false);
+        triggerHaptic('success');
+    };
+
+    const handleCancelAttachment = async () => {
+        if (isPreviewAudioPlaying) {
+            try { await stopAudioNative(); } catch (e) { }
+        }
+        setIsPreviewAudioPlaying(false);
+        setPendingAttachment(null);
+    };
+
+    const handlePreviewAudioPlayback = async () => {
+        if (!pendingAttachment || pendingAttachment.type !== 'audio') return;
+        if (isPreviewAudioPlaying) {
+            setIsPreviewAudioPlaying(false);
+            try { await stopAudioNative(); } catch (e) { }
+            previewAudioProgressAnim.stopAnimation();
+            previewAudioProgressAnim.setValue(0);
+            return;
+        }
+        try {
+            await playAudioNative(pendingAttachment.data.uri);
+            setIsPreviewAudioPlaying(true);
+            previewAudioProgressAnim.setValue(0);
+            Animated.timing(previewAudioProgressAnim, {
+                toValue: 1,
+                duration: 4000,
+                useNativeDriver: false,
+            }).start();
+            setTimeout(() => {
+                setIsPreviewAudioPlaying(false);
+                previewAudioProgressAnim.setValue(0);
+            }, 4000);
+        } catch (e) {
+            setIsPreviewAudioPlaying(false);
+            const message = getReadableNativeError(e, "Unable to preview audio.");
+            if (message) Alert.alert("Audio Error", message);
+        }
     };
 
     const handleLongPress = (id: string) => {
@@ -172,7 +362,7 @@ const ChatDetails = () => {
             }
             setPlayingAudioId(item.id);
             try { await playAudioNative(item.uri || "mock-uri"); } catch (e) { console.log("Play Audio Native Not Linked"); }
-            
+
             // Mock auto-stop after some time
             setTimeout(() => {
                 setPlayingAudioId(prev => (prev === item.id ? null : prev));
@@ -181,7 +371,7 @@ const ChatDetails = () => {
     };
 
     const renderMessageContent = (item: any) => {
-        switch(item.type) {
+        switch (item.type) {
             case 'image':
                 return <Image source={{ uri: item.mediaUri }} style={styles.messageImage} />;
             case 'document':
@@ -214,11 +404,11 @@ const ChatDetails = () => {
     };
 
     const renderMessage = ({ item }: { item: typeof MOCK_MESSAGES[0] }) => (
-        <TouchableOpacity 
+        <TouchableOpacity
             activeOpacity={0.9}
             onLongPress={() => handleLongPress(item.id)}
             style={[
-                styles.messageBubble, 
+                styles.messageBubble,
                 item.isSent ? styles.sentBubble : styles.receivedBubble,
                 selectedMessageAction === item.id && styles.messageSelected
             ]}
@@ -257,7 +447,7 @@ const ChatDetails = () => {
                 <View style={styles.muteModalContainer}>
                     <Text style={styles.muteModalTitle}>Mute Message Notifications</Text>
                     <Text style={styles.muteModalSubtitle}>You will not be notified for the messages received in the chat.</Text>
-                    
+
                     {['8 hours', '1 Week', 'Always'].map((option) => (
                         <TouchableOpacity key={option} style={styles.radioRow} onPress={() => setSelectedMuteOption(option)}>
                             <View style={[styles.radioCircle, selectedMuteOption === option && styles.radioCircleSelected]}>
@@ -266,7 +456,7 @@ const ChatDetails = () => {
                             <Text style={styles.radioText}>{option}</Text>
                         </TouchableOpacity>
                     ))}
-                    
+
                     <View style={styles.muteActionRow}>
                         <TouchableOpacity onPress={() => setIsMuteVisible(false)} style={styles.muteActionBtn}>
                             <Text style={styles.muteActionText}>Cancel</Text>
@@ -312,6 +502,63 @@ const ChatDetails = () => {
                                     <Text style={styles.attachmentText}>Audio</Text>
                                 </TouchableOpacity>
                             </View>
+                            <Text style={styles.recentMediaTitle}>Recent photos</Text>
+                            {isLoadingRecentImages ? (
+                                <Text style={styles.recentMediaHint}>Loading...</Text>
+                            ) : recentImages.length === 0 ? (
+                                <Text style={styles.recentMediaHint}>No recent photos available</Text>
+                            ) : (
+                                <FlatList
+                                    data={[{ uri: '__camera_tile__', name: 'Camera' } as RecentImage, ...recentImages]}
+                                    keyExtractor={(item, index) => `${item.uri}-${index}`}
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={styles.recentMediaList}
+                                    renderItem={({ item }) => (
+                                        item.uri === '__camera_tile__' ? (
+                                            <TouchableOpacity
+                                                activeOpacity={0.8}
+                                                style={[styles.recentMediaThumbWrapper, styles.cameraTile]}
+                                                onPress={handleCamera}
+                                            >
+                                                <ZORRRO_SVG.CHAT_SCREENS.CAMERA width={22} height={22} color="#A855F7" />
+                                                <Text style={styles.cameraTileText}>Camera</Text>
+                                            </TouchableOpacity>
+                                        ) : (
+                                            <TouchableOpacity
+                                                activeOpacity={0.8}
+                                                style={styles.recentMediaThumbWrapper}
+                                                onPress={() => handleSelectRecentImage(item)}
+                                                onLongPress={() => {
+                                                    setPendingAttachment({
+                                                        type: 'image',
+                                                        data: {
+                                                            uri: item.uri,
+                                                            name: item.name || `image-${Date.now()}.jpg`,
+                                                            mimeType: item.mimeType || 'image/jpeg',
+                                                            size: item.size,
+                                                        },
+                                                    });
+                                                    setIsAttachmentVisible(false);
+                                                    setSelectedRecentImages([]);
+                                                }}
+                                            >
+                                                <Image source={{ uri: item.uri }} style={styles.recentMediaThumb} />
+                                                {selectedRecentImages.some(selected => selected.uri === item.uri) && (
+                                                    <View style={styles.recentMediaSelectedOverlay}>
+                                                        <Text style={styles.recentMediaSelectedText}>✓</Text>
+                                                    </View>
+                                                )}
+                                            </TouchableOpacity>
+                                        )
+                                    )}
+                                />
+                            )}
+                            {selectedRecentImages.length > 0 && (
+                                <TouchableOpacity style={styles.sendSelectedButton} onPress={handleSendSelectedRecentImages}>
+                                    <Text style={styles.sendSelectedText}>Send {selectedRecentImages.length} selected</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
@@ -346,10 +593,66 @@ const ChatDetails = () => {
         </Modal>
     );
 
+    const renderAttachmentPreview = () => (
+        <Modal visible={!!pendingAttachment} transparent animationType="slide">
+            <View style={styles.bottomModalOverlay}>
+                <View style={styles.previewContainer}>
+                    <Text style={styles.previewTitle}>Preview</Text>
+
+                    {pendingAttachment?.type === 'image' && (
+                        <Image source={{ uri: pendingAttachment.data.uri }} style={styles.previewImage} />
+                    )}
+
+                    {pendingAttachment?.type === 'document' && (
+                        <View style={styles.previewDocContainer}>
+                            <ZORRRO_SVG.CHAT_SCREENS.DOCUMENT width={28} height={28} color="#3B82F6" />
+                            <View style={styles.previewDocMeta}>
+                                <Text style={styles.previewDocName} numberOfLines={2}>{pendingAttachment.data.name}</Text>
+                                <Text style={styles.previewDocSize}>{formatBytes(pendingAttachment.data.size)}</Text>
+                            </View>
+                        </View>
+                    )}
+
+                    {pendingAttachment?.type === 'audio' && (
+                        <TouchableOpacity style={styles.previewAudioContainer} onPress={handlePreviewAudioPlayback} activeOpacity={0.8}>
+                            <ZORRRO_SVG.CHAT_SCREENS.AUDIO width={24} height={24} color="#0EA5E9" />
+                            <View style={styles.previewAudioMeta}>
+                                <Text style={styles.previewAudioText}>{isPreviewAudioPlaying ? 'Stop' : 'Play'} audio preview</Text>
+                                <View style={styles.previewAudioWaveBase}>
+                                    <Animated.View
+                                        style={[
+                                            styles.previewAudioWaveProgress,
+                                            {
+                                                width: previewAudioProgressAnim.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: ['0%', '100%'],
+                                                }),
+                                            },
+                                        ]}
+                                    />
+                                </View>
+                            </View>
+                            <Text style={styles.previewAudioDuration}>{pendingAttachment.data.durationLabel}</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    <View style={styles.previewActions}>
+                        <TouchableOpacity style={styles.previewCancelButton} onPress={handleCancelAttachment}>
+                            <Text style={styles.previewCancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.previewSendButton} onPress={handleConfirmAttachmentSend}>
+                            <Text style={styles.previewSendText}>Send</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            
+
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -376,7 +679,7 @@ const ChatDetails = () => {
                 renderItem={renderMessage}
                 contentContainerStyle={styles.chatList}
                 showsVerticalScrollIndicator={false}
-                ListFooterComponent={() => 
+                ListFooterComponent={() =>
                     isTyping ? (
                         <View style={styles.typingIndicatorContainer}>
                             <Text style={styles.typingText}>{isGroup ? 'Someone is typing...' : 'Priya is typing...'}</Text>
@@ -411,7 +714,9 @@ const ChatDetails = () => {
                         <Text style={styles.recordingTimer}>
                             {Math.floor(recordDuration / 60)}:{(recordDuration % 60).toString().padStart(2, '0')}
                         </Text>
-                        <Text style={styles.recordingSlideText}>{'< Release to send'}</Text>
+                        <Text style={styles.recordingSlideText}>
+                            {isRecordCancelled ? '< Will cancel on release' : '< Slide left to cancel'}
+                        </Text>
                     </View>
                 )}
 
@@ -420,10 +725,10 @@ const ChatDetails = () => {
                         <ZORRRO_SVG.SCREENS.RIGHT_ARROW width={20} height={20} color="#FFFFFF" />
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity 
-                        style={[styles.sendButton, { backgroundColor: isRecording ? '#DC2626' : '#0084C8' }]} 
-                        onPressIn={handleRecordStart}
-                        onPressOut={handleRecordStop}
+                    <TouchableOpacity
+                        style={[styles.sendButton, { backgroundColor: isRecording ? '#DC2626' : '#0084C8' }]}
+                        onPressIn={(event) => handleRecordStart(event.nativeEvent.pageX)}
+                        onPressOut={(event) => handleRecordStop(event.nativeEvent.pageX)}
                     >
                         <ZORRRO_SVG.CHAT_SCREENS.AUDIO width={20} height={20} color="#FFFFFF" />
                     </TouchableOpacity>
@@ -434,6 +739,7 @@ const ChatDetails = () => {
             {renderMuteModal()}
             {renderAttachmentMenu()}
             {renderMessageActionMenu()}
+            {renderAttachmentPreview()}
 
         </SafeAreaView>
     );
@@ -716,6 +1022,74 @@ const styles = StyleSheet.create({
         color: '#4B5563',
         fontWeight: '500',
     },
+    recentMediaTitle: {
+        marginTop: 18,
+        marginBottom: 8,
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#374151',
+    },
+    recentMediaHint: {
+        fontSize: 13,
+        color: '#9CA3AF',
+        marginBottom: 4,
+    },
+    recentMediaList: {
+        paddingVertical: 4,
+    },
+    recentMediaThumbWrapper: {
+        marginRight: 10,
+        borderRadius: 10,
+        overflow: 'hidden',
+    },
+    recentMediaThumb: {
+        width: 68,
+        height: 68,
+        borderRadius: 10,
+        backgroundColor: '#E5E7EB',
+    },
+    cameraTile: {
+        width: 68,
+        height: 68,
+        backgroundColor: '#F3F4F6',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    cameraTileText: {
+        marginTop: 4,
+        fontSize: 10,
+        color: '#6B7280',
+        fontWeight: '600',
+    },
+    recentMediaSelectedOverlay: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#0084C8',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    recentMediaSelectedText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    sendSelectedButton: {
+        marginTop: 12,
+        backgroundColor: '#0084C8',
+        borderRadius: 10,
+        paddingVertical: 10,
+        alignItems: 'center',
+    },
+    sendSelectedText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+    },
     messageSelected: {
         opacity: 0.7,
         borderWidth: 2,
@@ -839,5 +1213,103 @@ const styles = StyleSheet.create({
         color: '#9CA3AF',
         fontStyle: 'italic',
         marginLeft: 'auto',
+    },
+    previewContainer: {
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 20,
+        paddingBottom: 32,
+    },
+    previewTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#111827',
+        marginBottom: 12,
+    },
+    previewImage: {
+        width: '100%',
+        height: 280,
+        borderRadius: 12,
+        marginBottom: 16,
+    },
+    previewDocContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        marginBottom: 16,
+    },
+    previewDocMeta: {
+        marginLeft: 12,
+        flex: 1,
+    },
+    previewDocName: {
+        fontSize: 15,
+        color: '#111827',
+        fontWeight: '500',
+    },
+    previewDocSize: {
+        marginTop: 4,
+        fontSize: 12,
+        color: '#6B7280',
+    },
+    previewAudioContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 16,
+    },
+    previewAudioMeta: {
+        flex: 1,
+        marginLeft: 10,
+        marginRight: 10,
+    },
+    previewAudioText: {
+        fontSize: 14,
+        color: '#111827',
+        marginBottom: 6,
+    },
+    previewAudioWaveBase: {
+        width: '100%',
+        height: 4,
+        backgroundColor: '#D1D5DB',
+        borderRadius: 2,
+        overflow: 'hidden',
+    },
+    previewAudioWaveProgress: {
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#0EA5E9',
+    },
+    previewAudioDuration: {
+        fontSize: 13,
+        color: '#6B7280',
+    },
+    previewActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+    },
+    previewCancelButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+        backgroundColor: '#F3F4F6',
+        marginRight: 10,
+    },
+    previewCancelText: {
+        color: '#4B5563',
+        fontWeight: '500',
+    },
+    previewSendButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+        backgroundColor: '#0084C8',
+    },
+    previewSendText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
     },
 });
