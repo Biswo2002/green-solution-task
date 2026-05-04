@@ -51,6 +51,7 @@ const CHANNELS_DATA = [
 ];
 import { useNavigation } from '@react-navigation/native';
 import { PrivateNavigationProp, PrivateScreenProps } from '$/routes/private/types';
+import { ZorrroView } from '$/components';
 
 const ChannelsLanding = () => {
     const { navigate } = useNavigation<PrivateScreenProps>();
@@ -95,9 +96,9 @@ const ChannelsLanding = () => {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView safe style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <View style={styles.container}>
+            <ZorrroView style={styles.container}>
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
@@ -130,8 +131,9 @@ const ChannelsLanding = () => {
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContainer}
                 />
-            </View>
-        </SafeAreaView>
+            </ZorrroView>
+        </ZorrroView>
+
     );
 };
 

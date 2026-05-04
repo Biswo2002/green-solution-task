@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity, SafeAreaView, Statu
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ZORRRO_SVG } from '../../../../assets';
+import { ZorrroView } from '$/components';
 
 const MESSAGES_DATA = [
     {
@@ -50,9 +51,9 @@ const ChannelsListening = () => {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            
+
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -71,7 +72,7 @@ const ChannelsListening = () => {
                     </View>
                 </View>
             </View>
-            
+
             {/* Divider */}
             <View style={styles.divider} />
 
@@ -88,7 +89,7 @@ const ChannelsListening = () => {
             <View style={styles.footer}>
                 <Text style={styles.footerText}>This is a broadcast channel. only admins can send messages</Text>
             </View>
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 
