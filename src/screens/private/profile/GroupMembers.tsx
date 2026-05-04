@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, FlatList, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
+import { ZorrroView } from '$/components';
 
 const MOCK_MEMBERS = [
     { id: '1', name: 'Priya Sharma', initials: 'PS', isAdmin: true, isOnline: true },
@@ -42,9 +43,9 @@ const GroupMembers = () => {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <ZORRRO_SVG.SCREENS.GO_BACK width={24} height={24} color="#111827" />
@@ -68,7 +69,7 @@ const GroupMembers = () => {
                 contentContainerStyle={styles.listContainer}
                 showsVerticalScrollIndicator={false}
             />
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 

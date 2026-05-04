@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
+import { ZorrroView } from '$/components';
 
 const { width } = Dimensions.get('window');
 const SPACING = 10;
@@ -22,7 +23,7 @@ const SharedMedia = () => {
     const renderTabs = () => (
         <View style={styles.tabsContainer}>
             {(['Media', 'Doc', 'Link'] as TabType[]).map((tab) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                     key={tab}
                     style={[styles.tabPill, activeTab === tab && styles.tabPillActive]}
                     onPress={() => setActiveTab(tab)}
@@ -41,9 +42,9 @@ const SharedMedia = () => {
                     <View style={styles.gridContainer}>
                         {Array.from({ length: section.count }).map((_, i) => (
                             <View key={i} style={styles.mediaItem}>
-                                <Image 
-                                    source={{ uri: 'https://picsum.photos/200/200?random=' + (sIndex * 10 + i) }} 
-                                    style={styles.mediaImage} 
+                                <Image
+                                    source={{ uri: 'https://picsum.photos/200/200?random=' + (sIndex * 10 + i) }}
+                                    style={styles.mediaImage}
                                 />
                             </View>
                         ))}
@@ -101,9 +102,9 @@ const SharedMedia = () => {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <ZORRRO_SVG.SCREENS.GO_BACK width={24} height={24} color="#111827" />
@@ -117,7 +118,7 @@ const SharedMedia = () => {
                 {activeTab === 'Doc' && renderDocContent()}
                 {activeTab === 'Link' && renderLinkContent()}
             </ScrollView>
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 

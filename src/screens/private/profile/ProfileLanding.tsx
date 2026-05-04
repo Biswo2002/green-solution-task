@@ -1,13 +1,14 @@
 import { StyleSheet, Text, View, SafeAreaView, ScrollView, StatusBar } from 'react-native';
 import React from 'react';
 import { ZORRRO_SVG } from '../../../assets';
+import { ZorrroView } from '$/components';
 
 const ProfileLanding = () => {
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                
+
                 {/* Header Section */}
                 <View style={styles.headerContainer}>
                     <View style={styles.avatarWrapper}>
@@ -106,9 +107,9 @@ const ProfileLanding = () => {
                         </View>
                     </View>
                 </View>
-                
+
             </ScrollView>
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 

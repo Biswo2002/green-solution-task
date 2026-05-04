@@ -2,14 +2,15 @@ import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
+import { ZorrroView } from '$/components';
 
 const GroupProfile = () => {
     const navigation = useNavigation<any>();
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <ZORRRO_SVG.SCREENS.GO_BACK width={24} height={24} color="#111827" />
@@ -84,7 +85,7 @@ const GroupProfile = () => {
                 {/* Members Section */}
                 <View style={styles.membersSection}>
                     <Text style={styles.sectionTitleSubtitle}>Members (48)</Text>
-                    
+
                     {/* Admin */}
                     <View style={styles.memberRow}>
                         <View style={styles.memberAvatar}>
@@ -117,7 +118,7 @@ const GroupProfile = () => {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 

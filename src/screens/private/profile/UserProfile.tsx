@@ -2,14 +2,15 @@ import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
+import { ZorrroView } from '$/components';
 
 const UserProfile = () => {
     const navigation = useNavigation<any>();
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <ZORRRO_SVG.SCREENS.GO_BACK width={24} height={24} color="#111827" />
@@ -29,7 +30,7 @@ const UserProfile = () => {
                         <ZORRRO_SVG.SOS.WARNING width={14} height={14} color="#6B7280" />
                         <Text style={styles.roleText}>Department Admin</Text>
                     </View>
-                    
+
                     <TouchableOpacity style={styles.chatButton} onPress={() => navigation.navigate('ChatDetails')}>
                         <Text style={styles.chatButtonIcon}>💬</Text>
                         <Text style={styles.chatButtonText}>Chat</Text>
@@ -97,7 +98,7 @@ const UserProfile = () => {
                     ))}
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 
