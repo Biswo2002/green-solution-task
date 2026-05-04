@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, StatusBar, TextInput } from 'react-native';
 import React, { useState } from 'react';
 import { ZORRRO_SVG } from '../../../assets';
 
@@ -56,10 +56,14 @@ import { ZorrroView } from '$/components';
 const ChannelsLanding = () => {
     const { navigate } = useNavigation<PrivateScreenProps>();
     const [selectedFilter, setSelectedFilter] = useState('All');
+    const [isSearchVisible, setIsSearchVisible] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const filteredData = selectedFilter === 'All'
-        ? CHANNELS_DATA
-        : CHANNELS_DATA.filter(item => item.type === selectedFilter);
+    const filteredData = CHANNELS_DATA.filter(item => {
+        const matchesFilter = selectedFilter === 'All' || item.type === selectedFilter;
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesFilter && matchesSearch;
+    });
 
     const renderChannelItem = ({ item }: { item: typeof CHANNELS_DATA[0] }) => (
         <TouchableOpacity
@@ -81,7 +85,7 @@ const ChannelsLanding = () => {
                     <Text style={styles.membersText}>{item.members}</Text>
                 </View>
                 <View style={styles.messageRow}>
-                    <Text style={styles.checkmarks}>✓ </Text>
+                    <ZORRRO_SVG.SCREENS.DONE_ALL width={16} height={16} color="#9CA3AF" style={styles.checkmarks} />
                     <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage}</Text>
                     {item.unread > 0 && (
                         <View style={styles.unreadBadgeContainer}>
@@ -105,10 +109,34 @@ const ChannelsLanding = () => {
                         <Text style={styles.headerTitle}>Channels</Text>
                         <Text style={styles.headerSubtitle}>Broadcast Messages</Text>
                     </View>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => setIsSearchVisible(!isSearchVisible)}>
                         <ZORRRO_SVG.SCREENS.SEARCH width={24} height={24} style={styles.searchIcon} />
                     </TouchableOpacity>
                 </View>
+
+                {/* Search Bar */}
+                {isSearchVisible && (
+                    <View style={styles.searchContainer}>
+                        <ZORRRO_SVG.SCREENS.SEARCH width={20} height={20} style={styles.searchIconInside} />
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Search channels..."
+                            placeholderTextColor="#9CA3AF"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            autoFocus
+                        />
+                        <TouchableOpacity 
+                            onPress={() => {
+                                setIsSearchVisible(false);
+                                setSearchQuery('');
+                            }}
+                            style={styles.closeButton}
+                        >
+                            <Text style={styles.closeIconText}>✕</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
 
                 {/* Filters */}
                 <View style={styles.filtersContainer}>
@@ -168,6 +196,33 @@ const styles = StyleSheet.create({
     },
     searchIcon: {
         opacity: 0.7,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F4F5F7',
+        marginHorizontal: 20,
+        borderRadius: 24,
+        paddingHorizontal: 15,
+        height: 48,
+        marginBottom: 15,
+    },
+    searchIconInside: {
+        marginRight: 10,
+        opacity: 0.5,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 16,
+        color: '#1F2937',
+    },
+    closeButton: {
+        padding: 5,
+    },
+    closeIconText: {
+        fontSize: 18,
+        color: '#9CA3AF',
+        fontWeight: 'bold',
     },
     filtersContainer: {
         flexDirection: 'row',
@@ -237,8 +292,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     typeBadge: {
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
+        backgroundColor: '#F3F4F6',
         borderRadius: 12,
         paddingHorizontal: 8,
         paddingVertical: 2,
@@ -260,8 +314,6 @@ const styles = StyleSheet.create({
         paddingRight: 30,
     },
     checkmarks: {
-        fontSize: 12,
-        color: '#D1D5DB',
         marginRight: 4,
     },
     lastMessage: {

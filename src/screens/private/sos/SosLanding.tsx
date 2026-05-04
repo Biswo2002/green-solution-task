@@ -1,6 +1,6 @@
 import { ZORRRO_SVG } from '$/assets';
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, SafeAreaView, StatusBar, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, StatusBar, ScrollView, Animated, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ZorrroView } from '$/components';
 
@@ -15,11 +15,11 @@ export interface AlertItem {
 export type FilterType = 'All' | 'Active' | 'Inprogress' | 'Resolved';
 
 const MOCK_ALERT_HISTORY: AlertItem[] = [
-    { id: '1', type: 'Medical', status: 'Active', time: 'Today, 13:46' },
-    { id: '2', type: 'Accident', status: 'In progress', time: 'Today, 13:46' },
-    { id: '3', type: 'Fire', status: 'Resolved', time: 'Today, 13:46' },
-    { id: '4', type: 'Fire', status: 'Resolved', time: 'Today, 13:46' },
-    { id: '5', type: 'Fire', status: 'Resolved', time: 'Today, 13:46' },
+    { id: '1', type: 'Medical', status: 'Active', time: 'Today,13:46' },
+    { id: '2', type: 'Accident', status: 'In progress', time: 'Today,13:46' },
+    { id: '3', type: 'Fire', status: 'Resolved', time: 'Today,13:46' },
+    { id: '4', type: 'Fire', status: 'Resolved', time: 'Today,13:46' },
+    { id: '5', type: 'Fire', status: 'Resolved', time: 'Today,13:46' },
 ];
 
 const FILTER_OPTIONS: FilterType[] = ['All', 'Active', 'Inprogress', 'Resolved'];
@@ -27,6 +27,29 @@ const FILTER_OPTIONS: FilterType[] = ['All', 'Active', 'Inprogress', 'Resolved']
 const SosLanding = () => {
     const navigation = useNavigation<any>();
     const [selectedFilter, setSelectedFilter] = useState<FilterType>('All');
+    const [isSosOverlayVisible, setIsSosOverlayVisible] = useState(false);
+    const rippleAnim = useRef(new Animated.Value(0)).current;
+    const timeoutRef = useRef<any>(null);
+
+    const startRipple = () => {
+        rippleAnim.setValue(0);
+        Animated.loop(
+            Animated.timing(rippleAnim, {
+                toValue: 1,
+                duration: 1500,
+                useNativeDriver: true,
+            }),
+        ).start();
+    };
+
+    const handleSosPress = () => {
+        setIsSosOverlayVisible(true);
+        startRipple();
+        timeoutRef.current = setTimeout(() => {
+            setIsSosOverlayVisible(false);
+            navigation.navigate('SosDetails', { status: 'Active' });
+        }, 2000);
+    };
 
     const renderHeader = () => (
         <View style={styles.headerContainer}>
@@ -34,7 +57,12 @@ const SosLanding = () => {
 
             <View style={styles.sosButtonWrapper}>
                 <View style={styles.sosOuterGlow}>
-                    <TouchableOpacity style={styles.sosButton} activeOpacity={0.8} onPress={() => navigation.navigate('SosDetails')}>
+                    <TouchableOpacity 
+                        style={styles.sosButton} 
+                        activeOpacity={0.8} 
+                        onPress={handleSosPress}
+                        onLongPress={handleSosPress}
+                    >
                         <Text style={styles.sosText}>SOS</Text>
                     </TouchableOpacity>
                 </View>
@@ -116,6 +144,70 @@ const SosLanding = () => {
                 contentContainerStyle={styles.listContainer}
                 showsVerticalScrollIndicator={false}
             />
+
+            {/* SOS Animated Overlay */}
+            <Modal visible={isSosOverlayVisible} transparent animationType="fade">
+                <View style={styles.overlayContainer}>
+                    <View style={styles.rippleContainer}>
+                        <Animated.View
+                            style={[
+                                styles.ripple,
+                                {
+                                    transform: [
+                                        {
+                                            scale: rippleAnim.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [1, 2.5],
+                                            }),
+                                        },
+                                    ],
+                                    opacity: rippleAnim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0.6, 0],
+                                    }),
+                                },
+                            ]}
+                        />
+                        <Animated.View
+                            style={[
+                                styles.ripple,
+                                {
+                                    transform: [
+                                        {
+                                            scale: rippleAnim.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [1, 1.8],
+                                            }),
+                                        },
+                                    ],
+                                    opacity: rippleAnim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0.8, 0],
+                                    }),
+                                },
+                            ]}
+                        />
+                        <View style={styles.overlaySosButton}>
+                            <Text style={styles.overlaySosText}>SOS</Text>
+                        </View>
+                    </View>
+
+                    <Text style={styles.overlayTitle}>Sending Emergency Alert...</Text>
+                    <Text style={styles.overlaySubtitle}>
+                        Your live location and audio will be shared with the control room and nearby officers.
+                    </Text>
+
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => {
+                            clearTimeout(timeoutRef.current);
+                            setIsSosOverlayVisible(false);
+                        }}
+                    >
+                        <Text style={styles.cancelButtonText}>Cancel (3s)</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modal>
         </ZorrroView>
     );
 };
@@ -199,7 +291,7 @@ const styles = StyleSheet.create({
     },
     filterChipSelected: {
         borderColor: '#0084C8',
-        backgroundColor: '#F0F9FF',
+        backgroundColor: '#FFFFFF',
     },
     filterText: {
         fontSize: 14,
@@ -285,5 +377,70 @@ const styles = StyleSheet.create({
     },
     statusTextResolved: {
         color: '#FFFFFF',
+    },
+    overlayContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 30,
+    },
+    rippleContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 50,
+        height: 160,
+    },
+    ripple: {
+        position: 'absolute',
+        width: 130,
+        height: 130,
+        borderRadius: 65,
+        backgroundColor: '#DC2626',
+    },
+    overlaySosButton: {
+        width: 130,
+        height: 130,
+        borderRadius: 65,
+        backgroundColor: '#DC2626',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+        shadowColor: '#DC2626',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    overlaySosText: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+    },
+    overlayTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    overlaySubtitle: {
+        fontSize: 14,
+        color: '#D1D5DB',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 40,
+    },
+    cancelButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 30,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#FFFFFF',
+        backgroundColor: 'transparent',
+    },
+    cancelButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
     },
 });

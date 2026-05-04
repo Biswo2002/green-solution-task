@@ -164,11 +164,11 @@ const styles = StyleSheet.create({
     },
     senderBadge: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 4,
+        borderRadius: 6,
         paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingVertical: 3,
         alignSelf: 'flex-start',
-        marginBottom: 8,
+        marginBottom: 6,
     },
     senderText: {
         fontSize: 12,
@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
     },
     messageText: {
         fontSize: 15,
-        color: '#111827',
-        marginBottom: 4,
+        color: '#1F2937',
+        marginBottom: 6,
         lineHeight: 22,
     },
     messageTime: {
