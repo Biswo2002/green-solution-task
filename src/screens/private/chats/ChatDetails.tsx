@@ -5,6 +5,7 @@ import { ZORRRO_SVG } from '$/assets';
 import { pickImageNative, pickDocumentNative, startRecordingNative, stopRecordingNative, playAudioNative, stopAudioNative, getRecentImagesNative } from '$/utils/nativeModules';
 import type { PickedDocument, PickedImage, RecentImage } from '$/utils/nativeModules';
 import { triggerHaptic } from '$/utils/haptics';
+import { ZorrroView } from '$/components';
 
 const MOCK_MESSAGES: any[] = [
     { id: '1', type: 'text', text: 'Good morning sir. The vaccination drive report for Varanasi district is ready.', time: '9:30 AM', isSent: false },
@@ -416,7 +417,7 @@ const ChatDetails = () => {
             {renderMessageContent(item)}
             <View style={styles.timeContainer}>
                 <Text style={[styles.timeText, item.isSent ? styles.sentTimeText : styles.receivedTimeText]}>{item.time}</Text>
-                {item.isSent && <Text style={styles.checkmark}> ✓✓</Text>}
+                {item.isSent && <ZORRRO_SVG.SCREENS.DONE_ALL width={14} height={14} color="rgba(255,255,255,0.9)" style={styles.checkmark} />}
             </View>
         </TouchableOpacity>
     );
@@ -650,7 +651,7 @@ const ChatDetails = () => {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
             {/* Header */}
@@ -741,7 +742,7 @@ const ChatDetails = () => {
             {renderMessageActionMenu()}
             {renderAttachmentPreview()}
 
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 
@@ -848,8 +849,7 @@ const styles = StyleSheet.create({
         color: '#9CA3AF',
     },
     checkmark: {
-        fontSize: 10,
-        color: 'rgba(255,255,255,0.9)',
+        marginLeft: 4,
     },
     inputContainer: {
         flexDirection: 'row',

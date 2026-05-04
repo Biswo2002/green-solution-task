@@ -1,7 +1,18 @@
-import { StyleSheet, Text, View, TextInput, FlatList, TouchableOpacity, SafeAreaView, StatusBar, Modal, Animated } from 'react-native';
-import React, { useState, useRef, useEffect } from 'react';
+import {
+    StyleSheet,
+    Text,
+    View,
+    TextInput,
+    FlatList,
+    TouchableOpacity,
+    StatusBar,
+    Modal,
+    Animated,
+} from 'react-native';
+import React, { useState, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ZORRRO_SVG } from '../../../assets';
+import { ZorrroView } from '$/components';
 
 const CHATS_DATA = [
     {
@@ -77,7 +88,7 @@ const CHATS_DATA = [
 const ChatsLanding = () => {
     const navigation = useNavigation<any>();
     const [selectedFilter, setSelectedFilter] = useState('All');
-    
+
     // SOS Overlay State
     const [isSosOverlayVisible, setIsSosOverlayVisible] = useState(false);
     const rippleAnim = useRef(new Animated.Value(0)).current;
@@ -90,7 +101,7 @@ const ChatsLanding = () => {
                 toValue: 1,
                 duration: 1500,
                 useNativeDriver: true,
-            })
+            }),
         ).start();
     };
 
@@ -118,14 +129,18 @@ const ChatsLanding = () => {
         return true;
     });
 
-    const renderChatItem = ({ item }: { item: typeof CHATS_DATA[0] }) => (
-        <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('ChatDetails', { chatId: item.id, isGroup: item.isGroup })}>
+    const renderChatItem = ({ item }: { item: (typeof CHATS_DATA)[0] }) => (
+        <TouchableOpacity
+            style={styles.chatItem}
+            onPress={() =>
+                navigation.navigate('ChatDetails', {
+                    chatId: item.id,
+                    isGroup: item.isGroup,
+                })
+            }
+        >
             <View style={styles.avatarContainer}>
-                {item.isGroup ? (
-                    <Text style={styles.avatarText}>👥</Text>
-                ) : (
-                    <Text style={styles.avatarText}>{item.initials}</Text>
-                )}
+                <Text style={styles.avatarText}>{item.initials}</Text>
             </View>
             <View style={styles.chatDetails}>
                 <View style={styles.chatHeader}>
@@ -143,13 +158,20 @@ const ChatsLanding = () => {
                     </View>
                 )}
                 <View style={styles.messageRow}>
-                    {item.unread === 0 && <Text style={styles.checkmarks}>✓✓ </Text>}
-                    <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage}</Text>
+                    <ZORRRO_SVG.SCREENS.DONE_ALL
+                        width={16}
+                        height={16}
+                        color="#9CA3AF"
+                        style={styles.checkmarks}
+                    />
+                    <Text style={styles.lastMessage} numberOfLines={1}>
+                        {item.lastMessage}
+                    </Text>
                     {item.unread > 0 && (
                         <View style={styles.unreadBadgeContainer}>
-                           <View style={styles.unreadBadge}>
+                            <View style={styles.unreadBadge}>
                                 <Text style={styles.unreadBadgeText}>{item.unread}</Text>
-                           </View>
+                            </View>
                         </View>
                     )}
                 </View>
@@ -158,7 +180,7 @@ const ChatsLanding = () => {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView safe style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <View style={styles.container}>
                 {/* Header */}
@@ -169,7 +191,11 @@ const ChatsLanding = () => {
 
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
-                    <ZORRRO_SVG.SCREENS.SEARCH width={20} height={20} style={styles.searchIcon} />
+                    <ZORRRO_SVG.SCREENS.SEARCH
+                        width={20}
+                        height={20}
+                        style={styles.searchIcon}
+                    />
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Search chats..."
@@ -180,79 +206,141 @@ const ChatsLanding = () => {
                 {/* Filters */}
                 <View style={styles.filtersContainer}>
                     <TouchableOpacity
-                        style={[styles.filterChip, selectedFilter === 'All' && styles.filterChipActive]}
+                        style={[
+                            styles.filterChip,
+                            selectedFilter === 'All' && styles.filterChipActive,
+                        ]}
                         onPress={() => setSelectedFilter('All')}
                     >
-                        <Text style={[styles.filterText, selectedFilter === 'All' && styles.filterTextActive]}>All</Text>
+                        <Text
+                            style={[
+                                styles.filterText,
+                                selectedFilter === 'All' && styles.filterTextActive,
+                            ]}
+                        >
+                            All
+                        </Text>
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity
-                        style={[styles.filterChip, selectedFilter === 'Unread' && styles.filterChipActive]}
+                        style={[
+                            styles.filterChip,
+                            selectedFilter === 'Unread' && styles.filterChipActive,
+                        ]}
                         onPress={() => setSelectedFilter('Unread')}
                     >
-                        <Text style={[styles.filterText, selectedFilter === 'Unread' && styles.filterTextActive]}>Unread</Text>
+                        <Text
+                            style={[
+                                styles.filterText,
+                                selectedFilter === 'Unread' && styles.filterTextActive,
+                            ]}
+                        >
+                            Unread
+                        </Text>
                         <View style={styles.filterBadge}>
                             <Text style={styles.filterBadgeText}>4</Text>
                         </View>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.filterChip, selectedFilter === 'Groups' && styles.filterChipActive]}
+                        style={[
+                            styles.filterChip,
+                            selectedFilter === 'Groups' && styles.filterChipActive,
+                        ]}
                         onPress={() => setSelectedFilter('Groups')}
                     >
-                        <Text style={[styles.filterText, selectedFilter === 'Groups' && styles.filterTextActive]}>Groups</Text>
+                        <Text
+                            style={[
+                                styles.filterText,
+                                selectedFilter === 'Groups' && styles.filterTextActive,
+                            ]}
+                        >
+                            Groups
+                        </Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Chat List */}
                 <FlatList
                     data={filteredChats}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={item => item.id}
                     renderItem={renderChatItem}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContainer}
                 />
 
                 {/* Floating SOS Button */}
-                <View style={styles.fabOuterGlow}>
-                    <TouchableOpacity 
-                        style={styles.fabButton} 
-                        activeOpacity={0.8}
-                        onPress={handleSosPress}
-                    >
-                        <Text style={styles.fabText}>SOS</Text>
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                    style={styles.fabButton}
+                    activeOpacity={0.8}
+                    onPress={handleSosPress}
+                >
+                    <Text style={styles.fabText}>SOS</Text>
+                </TouchableOpacity>
             </View>
 
             {/* SOS Animated Overlay */}
             <Modal visible={isSosOverlayVisible} transparent animationType="fade">
                 <View style={styles.overlayContainer}>
                     <View style={styles.rippleContainer}>
-                        <Animated.View style={[styles.ripple, {
-                            transform: [{ scale: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 2.5] }) }],
-                            opacity: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 0] })
-                        }]} />
-                        <Animated.View style={[styles.ripple, {
-                            transform: [{ scale: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.8] }) }],
-                            opacity: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] })
-                        }]} />
+                        <Animated.View
+                            style={[
+                                styles.ripple,
+                                {
+                                    transform: [
+                                        {
+                                            scale: rippleAnim.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [1, 2.5],
+                                            }),
+                                        },
+                                    ],
+                                    opacity: rippleAnim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0.6, 0],
+                                    }),
+                                },
+                            ]}
+                        />
+                        <Animated.View
+                            style={[
+                                styles.ripple,
+                                {
+                                    transform: [
+                                        {
+                                            scale: rippleAnim.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [1, 1.8],
+                                            }),
+                                        },
+                                    ],
+                                    opacity: rippleAnim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0.8, 0],
+                                    }),
+                                },
+                            ]}
+                        />
                         <View style={styles.overlaySosButton}>
                             <Text style={styles.overlaySosText}>SOS</Text>
                         </View>
                     </View>
-                    
+
                     <Text style={styles.overlayTitle}>Sending Emergency Alert...</Text>
                     <Text style={styles.overlaySubtitle}>
-                        Your location and Details are being Shared{'\n'}with the nearest control room.
+                        Your location and Details are being Shared{'\n'}with the nearest
+                        control room.
                     </Text>
-                    
-                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancelSos}>
+
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={handleCancelSos}
+                    >
                         <Text style={styles.cancelButtonText}>cancel</Text>
                     </TouchableOpacity>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 
@@ -285,7 +373,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#F4F5F7',
         marginHorizontal: 20,
-        borderRadius: 25,
+        borderRadius: 24,
         paddingHorizontal: 15,
         height: 48,
         marginBottom: 20,
@@ -328,9 +416,11 @@ const styles = StyleSheet.create({
     },
     filterBadge: {
         backgroundColor: '#0084C8',
+        width: 20,
+        height: 20,
         borderRadius: 10,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
         marginLeft: 6,
     },
     filterBadgeText: {
@@ -359,7 +449,7 @@ const styles = StyleSheet.create({
     avatarText: {
         color: '#005988',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '600',
     },
     chatDetails: {
         flex: 1,
@@ -408,8 +498,6 @@ const styles = StyleSheet.create({
         paddingRight: 30,
     },
     checkmarks: {
-        fontSize: 12,
-        color: '#D1D5DB', // Very light grey checkmarks
         marginRight: 4,
     },
     lastMessage: {
@@ -437,25 +525,21 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontWeight: 'bold',
     },
-    fabOuterGlow: {
+    fabButton: {
         position: 'absolute',
         bottom: 24,
         right: 24,
-        shadowColor: '#DC2626',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.9,
-        shadowRadius: 25,
-        elevation: 15,
-        borderRadius: 40,
-        backgroundColor: '#FFFFFF',
-    },
-    fabButton: {
         width: 80,
         height: 80,
         borderRadius: 40,
         backgroundColor: '#DC2626',
         justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#DC2626',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.5,
+        shadowRadius: 24,
+        elevation: 20,
     },
     fabText: {
         fontSize: 24,
