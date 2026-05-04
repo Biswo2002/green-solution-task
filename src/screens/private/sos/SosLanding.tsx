@@ -2,6 +2,7 @@ import { ZORRRO_SVG } from '$/assets';
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, SafeAreaView, StatusBar, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { ZorrroView } from '$/components';
 
 
 export interface AlertItem {
@@ -66,8 +67,8 @@ const SosLanding = () => {
     );
 
     const renderItem = ({ item }: { item: AlertItem }) => (
-        <TouchableOpacity 
-            style={styles.alertCard} 
+        <TouchableOpacity
+            style={styles.alertCard}
             activeOpacity={0.7}
             onPress={() => navigation.navigate('SosDetails', { alertId: item.id, status: item.status })}
         >
@@ -105,7 +106,7 @@ const SosLanding = () => {
         });
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <ZorrroView safe style={styles.safeArea}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <FlatList
                 data={filteredData}
@@ -115,7 +116,7 @@ const SosLanding = () => {
                 contentContainerStyle={styles.listContainer}
                 showsVerticalScrollIndicator={false}
             />
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 

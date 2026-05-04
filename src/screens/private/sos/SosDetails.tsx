@@ -4,6 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import BottomSheet from '$/components/core/BottomSheet';
 import { ZORRRO_SVG } from '$/assets';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { ZorrroView } from '$/components';
 
 const SOS_TYPES = [
     { id: 'Medical', label: 'Medical', Icon: ZORRRO_SVG.SOS.MEDICAL },
@@ -19,7 +20,7 @@ const QUICK_INFOS = ['Need ambulance', 'In danger', 'Come fast'];
 const SosDetails = () => {
     const navigation = useNavigation();
     const route = useRoute<any>();
-    
+
     const initialStatus = route.params?.status;
     const [step, setStep] = useState(initialStatus === 'Resolved' ? 4 : 1);
     const isResolved = step === 4;
@@ -32,7 +33,7 @@ const SosDetails = () => {
             return () => clearTimeout(timer);
         }
     }, [step]);
-    
+
     const [isSheetVisible, setIsSheetVisible] = useState(false);
 
     // Form state
@@ -65,7 +66,7 @@ const SosDetails = () => {
     };
 
     const toggleQuickInfo = (info: string) => {
-        setSelectedInfos(prev => 
+        setSelectedInfos(prev =>
             prev.includes(info) ? prev.filter(i => i !== info) : [...prev, info]
         );
     };
@@ -78,7 +79,7 @@ const SosDetails = () => {
         return (
             <View style={styles.stepperContainer}>
                 <Text style={styles.sectionTitle}>SOS Track</Text>
-                
+
                 {/* Step 1 */}
                 <View style={styles.stepRow}>
                     <View style={styles.stepIndicator}>
@@ -139,15 +140,15 @@ const SosDetails = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <ZorrroView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-            
-            <LinearGradient 
+
+            <LinearGradient
                 colors={isResolved ? ['#059669', '#10B981'] : ['#EF4444', '#F97316']}
-                start={{x: 0, y: 0}} end={{x: 1, y: 1}}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                 style={styles.headerGradient}
             >
-                <SafeAreaView>
+                <ZorrroView>
                     <View style={styles.headerNav}>
                         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                             <ZORRRO_SVG.SCREENS.GO_BACK width={24} height={24} color="#FFFFFF" />
@@ -160,7 +161,7 @@ const SosDetails = () => {
                         </Text>
                         <Text style={styles.subHeading}>Help is coming, stay calm</Text>
                     </View>
-                </SafeAreaView>
+                </ZorrroView>
             </LinearGradient>
 
             <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
@@ -169,8 +170,8 @@ const SosDetails = () => {
                 <View style={styles.divider} />
 
                 {!isResolved && (
-                    <TouchableOpacity 
-                        style={styles.addInfoButton} 
+                    <TouchableOpacity
+                        style={styles.addInfoButton}
                         onPress={() => setIsSheetVisible(true)}
                     >
                         <Text style={styles.addInfoText}>Add Additional info(optional)</Text>
@@ -185,7 +186,7 @@ const SosDetails = () => {
                             <Text style={styles.infoRowText}>Emergency Type -: {submittedInfo.type}</Text>
                             <Text style={styles.infoRowText}>Quick info-: {submittedInfo.quickInfos.join(', ')}</Text>
                             <Text style={styles.infoRowText}>Evidence-:</Text>
-                            
+
                             {submittedInfo.evidence.map((item: any) => (
                                 <View key={item.id} style={styles.evidenceItemCard}>
                                     {getEvidenceIcon(item.type)}
@@ -217,8 +218,8 @@ const SosDetails = () => {
                             const isSelected = selectedType === type.id;
                             const Icon = type.Icon;
                             return (
-                                <TouchableOpacity 
-                                    key={type.id} 
+                                <TouchableOpacity
+                                    key={type.id}
                                     style={[styles.gridItem, isSelected && styles.gridItemSelected]}
                                     onPress={() => setSelectedType(type.id)}
                                 >
@@ -238,8 +239,8 @@ const SosDetails = () => {
                         {QUICK_INFOS.map((info) => {
                             const isSelected = selectedInfos.includes(info);
                             return (
-                                <TouchableOpacity 
-                                    key={info} 
+                                <TouchableOpacity
+                                    key={info}
                                     style={[styles.pill, isSelected && styles.pillSelected]}
                                     onPress={() => toggleQuickInfo(info)}
                                 >
@@ -289,7 +290,7 @@ const SosDetails = () => {
                 </TouchableOpacity>
 
             </BottomSheet>
-        </View>
+        </ZorrroView>
     );
 };
 
