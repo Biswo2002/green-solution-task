@@ -34,6 +34,7 @@ import AUDIO from './mic.svg';
 import PHONE from './call.svg';
 import SEND from './send.svg';
 import SOS from './sos.svg';
+import DONE_ALL from './done_all.svg';
 export default {
    BENGAL_MAP,
    WB_LOGO,
@@ -73,6 +74,7 @@ export default {
       SEARCH,
       MORE,
       LINK,
+      DONE_ALL,
    },
    SOS: {
       WARNING,
