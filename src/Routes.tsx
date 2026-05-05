@@ -1,29 +1,50 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PrivateRoutes from './routes/private';
 import { SplashScreen, PermissionsScreen } from './screens/public';
 import AppStorage, { appStorageReady } from './utils/AppStorage';
 import { STORAGE_KEYS } from './utils/storageKeys';
 
+/** Matches SportUp: full intro splash only before first-time permissions; return visits go straight to the app. */
+const FIRST_LAUNCH_SPLASH_MIN_MS = 6000;
+
 const Routes = () => {
-  const [appState, setAppState] = useState<'splash' | 'permissions' | 'ready'>('splash');
+  const [appState, setAppState] = useState<'splash' | 'permissions' | 'ready'>(
+    'splash',
+  );
+
+  const completePermissionsOnboarding = useCallback(() => {
+    setAppState('ready');
+  }, []);
 
   useEffect(() => {
-    const initializeApp = async () => {
-      // Wait for storage to hydrate
-      await appStorageReady;
+    let cancelled = false;
 
-      // Ensure splash shows for at least 6 seconds as per previous design
-      setTimeout(() => {
-        const hasRequestedPermissions = AppStorage.getItem(STORAGE_KEYS.CORE_PERMISSIONS_REQUESTED) === true;
-        if (hasRequestedPermissions) {
-          setAppState('ready');
-        } else {
-          setAppState('permissions');
-        }
-      }, 6000);
+    const runBootstrap = async () => {
+      await appStorageReady;
+      if (cancelled) return;
+
+      const permissionFlag = await AppStorage.getItemAsync(
+        STORAGE_KEYS.CORE_PERMISSIONS_REQUESTED,
+      );
+      if (cancelled) return;
+      if (permissionFlag === true) {
+        setAppState('ready');
+        return;
+      }
+
+      await new Promise<void>(resolve => {
+        setTimeout(resolve, FIRST_LAUNCH_SPLASH_MIN_MS);
+      });
+      if (cancelled) return;
+
+      setAppState('permissions');
     };
 
-    initializeApp();
+    runBootstrap();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (appState === 'splash') {
@@ -31,7 +52,7 @@ const Routes = () => {
   }
 
   if (appState === 'permissions') {
-    return <PermissionsScreen onComplete={() => setAppState('ready')} />;
+    return <PermissionsScreen onComplete={completePermissionsOnboarding} />;
   }
 
   return <PrivateRoutes />;
