@@ -40,14 +40,19 @@ const serialize = (value: JsonValue) => {
   }
 };
 
-const setItem = (key: string, data: JsonValue) => {
+/** Updates in-memory cache immediately, then persists. Await this when the value must survive process death (e.g. onboarding flags). */
+const setItem = (key: string, data: JsonValue): Promise<void> => {
   try {
     cache.set(key, data);
-    AsyncStorage.setItem(key, serialize(data)).catch(err =>
-      Logger.error('AppStorage setItem error', err),
+    return AsyncStorage.setItem(key, serialize(data)).then(
+      () => undefined,
+      err => {
+        Logger.error('AppStorage setItem error', err);
+      },
     );
   } catch (error) {
     Logger.error('AppStorage setItem error', error);
+    return Promise.resolve();
   }
 };
 
@@ -56,6 +61,28 @@ const getItem = (key: string) => {
     return cache.has(key) ? cache.get(key) ?? null : null;
   } catch (error) {
     Logger.error('AppStorage getItem error', error);
+    return null;
+  }
+};
+
+/** Reads the value from AsyncStorage (source of truth) and syncs the in-memory cache. Prefer this after startup for flags that must match disk (e.g. one-time onboarding). */
+const getItemAsync = async (key: string): Promise<JsonValue | null> => {
+  try {
+    const value = await AsyncStorage.getItem(key);
+    if (value === null) {
+      cache.delete(key);
+      return null;
+    }
+    let parsed: JsonValue;
+    try {
+      parsed = JSON.parse(value) as JsonValue;
+    } catch {
+      parsed = value as JsonValue;
+    }
+    cache.set(key, parsed);
+    return parsed;
+  } catch (error) {
+    Logger.error('AppStorage getItemAsync error', error);
     return null;
   }
 };
@@ -124,4 +151,4 @@ const clearAll = () => {
   }
 };
 
-export default { setItem, getItem, removeItem, getAllKeys, clearAll };
+export default { setItem, getItem, getItemAsync, removeItem, getAllKeys, clearAll };

@@ -34,12 +34,25 @@ const PERMISSION_ITEMS = [
 
 
 
-export default function PermissionsScreen({ onComplete }: { onComplete: () => void }) {
+export default function PermissionsScreen({
+  onComplete,
+}: {
+  onComplete: () => void | Promise<void>;
+}) {
   const [loading, setLoading] = useState(false);
 
   const finishPermissions = useCallback(async () => {
-    await AppStorage.setItem(STORAGE_KEYS.CORE_PERMISSIONS_REQUESTED, true);
-    onComplete();
+    const key = STORAGE_KEYS.CORE_PERMISSIONS_REQUESTED;
+    await AppStorage.setItem(key, true);
+    let stored = await AppStorage.getItemAsync(key);
+    if (stored !== true) {
+      await AppStorage.setItem(key, true);
+      stored = await AppStorage.getItemAsync(key);
+    }
+    if (stored !== true) {
+      console.warn('CORE_PERMISSIONS_REQUESTED could not be persisted; onboarding may show again.');
+    }
+    await Promise.resolve(onComplete());
   }, [onComplete]);
 
   const handleRequestPermissions = useCallback(async () => {
