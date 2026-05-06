@@ -1,8 +1,10 @@
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { ZORRRO_SVG } from '../../../../assets';
-import { ZorrroView } from '$/components';
+import { ScreenStatusBar, ZorrroView } from '$/components';
+import { ZORRRO_SVG } from '$/assets';
+import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding.style';
+import { ZORRRO_COLORS, ZORRRO_FONTS } from '$/styles';
 
 const MESSAGES_DATA = [
     {
@@ -35,43 +37,67 @@ const MESSAGES_DATA = [
         message: 'Please share the updated figures',
         time: '9:30 AM',
     },
+    {
+        id: '3n',
+        sender: 'Admin',
+        message: 'Please share the updated figures',
+        time: '9:30 AM',
+    },
+    {
+        id: '41',
+        sender: 'Admin',
+        message: 'Please share the updated figures',
+        time: '9:30 AM',
+    },
+    {
+        id: '5fd',
+        sender: 'Admin',
+        message: 'Please share the updated figures',
+        time: '9:30 AM',
+    },
+    {
+        id: '5po',
+        sender: 'Admin',
+        message: 'Please share the updated figures',
+        time: '9:30 AM',
+    },
 ];
 
 const ChannelsListening = () => {
     const navigation = useNavigation();
 
     const renderMessage = ({ item }: { item: typeof MESSAGES_DATA[0] }) => (
-        <View style={styles.messageBubble}>
-            <View style={styles.senderBadge}>
+        <ZorrroView style={styles.messageBubble}>
+            <ZorrroView style={styles.senderBadge}>
                 <Text style={styles.senderText}>{item.sender}</Text>
-            </View>
+            </ZorrroView>
             <Text style={styles.messageText}>{item.message}</Text>
             <Text style={styles.messageTime}>{item.time}</Text>
-        </View>
+        </ZorrroView>
     );
 
     return (
-        <ZorrroView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <ZorrroView safe style={ChatsLandingStyles.safeArea}>
+            <ScreenStatusBar backgroundColor={ZORRRO_COLORS.WHITE} barStyle="dark-content" />
 
             {/* Header */}
-            <View style={styles.header}>
+            <ZorrroView style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <ZORRRO_SVG.SCREENS.GO_BACK width={24} height={24} fill="#111827" />
+                    <ZORRRO_SVG.SCREENS.GO_BACK width={28} height={28} fill="#1C1B1F" />
                 </TouchableOpacity>
-                <View style={styles.headerIconContainer}>
-                    <ZORRRO_SVG.TAB_LAYOUT.CHANNELS width={20} height={20} fill="#0084C8" />
-                </View>
-                <View style={styles.headerInfo}>
+                <ZorrroView style={styles.headerIconContainer}>
+                    <ZORRRO_SVG.TAB_LAYOUT.CHANNELS_ACTIVE width={22} height={22} />
+                </ZorrroView>
+                <ZorrroView style={styles.headerInfo}>
                     <Text style={styles.headerTitle}>Revenue District news</Text>
-                    <View style={styles.headerSubtitleRow}>
-                        <View style={styles.typeBadge}>
+                    <ZorrroView style={styles.headerSubtitleRow}>
+                        <ZorrroView style={styles.typeBadge}>
                             <Text style={styles.typeText}>District</Text>
-                        </View>
+                        </ZorrroView>
                         <Text style={styles.membersText}>48 members</Text>
-                    </View>
-                </View>
-            </View>
+                    </ZorrroView>
+                </ZorrroView>
+            </ZorrroView>
 
             {/* Divider */}
             <View style={styles.divider} />
@@ -96,10 +122,7 @@ const ChannelsListening = () => {
 export default ChannelsListening;
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
+
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -107,14 +130,13 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
     backButton: {
-        padding: 4,
-        marginRight: 12,
+        marginRight: 16,
     },
     headerIconContainer: {
-        width: 40,
-        height: 40,
+        width: 36,
+        height: 36,
         borderRadius: 20,
-        backgroundColor: '#E5F1FA',
+        backgroundColor: '#085F871A',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -123,9 +145,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     headerTitle: {
-        fontSize: 18,
-        fontWeight: '500',
-        color: '#111827',
+        fontSize: 14,
+        fontFamily: ZORRRO_FONTS?.[600]?.normal,
+        color: '#171D26',
         marginBottom: 2,
     },
     headerSubtitleRow: {
@@ -133,7 +155,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     typeBadge: {
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#EAEDF0',
         borderRadius: 12,
         paddingHorizontal: 8,
         paddingVertical: 2,
@@ -141,29 +163,31 @@ const styles = StyleSheet.create({
     },
     typeText: {
         fontSize: 10,
-        color: '#111827',
-        fontWeight: '600',
+        color: '#171D26',
+        fontFamily: ZORRRO_FONTS?.[700]?.normal,
     },
     membersText: {
-        fontSize: 12,
-        color: '#9CA3AF',
+        fontSize: 10,
+        color: '#6F7D90',
+        fontFamily: ZORRRO_FONTS?.[500]?.normal,
     },
     divider: {
         height: 1,
-        backgroundColor: '#E5E7EB',
+        backgroundColor: '#DAE0E7',
     },
     listContainer: {
         padding: 16,
     },
     messageBubble: {
-        backgroundColor: '#F4F5F7',
-        borderRadius: 8,
-        padding: 12,
+        backgroundColor: '#F0F2F4',
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
         marginBottom: 12,
         width: '100%',
     },
     senderBadge: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: ZORRRO_COLORS?.WHITE,
         borderRadius: 6,
         paddingHorizontal: 8,
         paddingVertical: 3,
@@ -191,7 +215,7 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         paddingHorizontal: 20,
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: ZORRRO_COLORS?.WHITE,
     },
     footerText: {
         fontSize: 13,

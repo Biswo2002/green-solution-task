@@ -6,13 +6,14 @@ import {
     ViewStyle,
     Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context'; // ✅ SafeAreaView import
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context'; // ✅ SafeAreaView import
 
 type PaddingSize = 'none' | 'small' | 'medium' | 'large';
 
 interface ZorrroViewProps extends ViewProps {
     padded?: boolean | PaddingSize | number;
     safe?: boolean; // ✅ NEW prop to enable SafeAreaView
+    edges?: Edge[]; // ✅ Control which edges get safe area padding
 }
 
 const { width, height } = Dimensions.get('window');
@@ -40,7 +41,7 @@ const getResponsivePadding = (size: PaddingSize): StyleProp<ViewStyle> => {
     }
 };
 
-const ZorrroView: FC<ZorrroViewProps> = ({ style, padded = 'none', safe = false, ...props }) => {
+const ZorrroView: FC<ZorrroViewProps> = ({ style, padded = 'none', safe = false, edges, ...props }) => {
     let paddingStyle: StyleProp<ViewStyle> = {};
 
     if (typeof padded === 'number') {
@@ -51,9 +52,11 @@ const ZorrroView: FC<ZorrroViewProps> = ({ style, padded = 'none', safe = false,
         paddingStyle = getResponsivePadding(padded);
     }
 
-    const Container = safe ? SafeAreaView : View;
+    if (safe) {
+        return <SafeAreaView edges={edges} style={[paddingStyle, style]} {...props} />;
+    }
 
-    return <Container style={[paddingStyle, style]} {...props} />;
+    return <View style={[paddingStyle, style]} {...props} />;
 };
 
 export default ZorrroView;

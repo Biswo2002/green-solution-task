@@ -9,9 +9,9 @@ import {
     Text,
     View,
 } from 'react-native';
-import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding';
+import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding.style';
 import { ZORRRO_SVG } from '../../../assets';
-import { ZorrroView } from '$/components';
+import { ScreenStatusBar, ZorrroView } from '$/components';
 import { ZORRRO_COLORS } from '$/styles';
 import {
     ChatListItem,
@@ -219,8 +219,9 @@ const ChatsLanding = () => {
     );
 
     return (
-        <ZorrroView safe style={ChatsLandingStyles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor={ZORRRO_COLORS.WHITE} />
+        <ZorrroView safe edges={['top', 'left', 'right']} style={ChatsLandingStyles.safeArea}>
+            <ScreenStatusBar backgroundColor={ZORRRO_COLORS?.WHITE} barStyle="dark-content" />
+
             <ZorrroView style={ChatsLandingStyles.container}>
                 {/* Header */}
                 <ZorrroView style={ChatsLandingStyles.header}>

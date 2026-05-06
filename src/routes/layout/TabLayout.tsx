@@ -1,4 +1,7 @@
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { useRef, useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,11 +13,10 @@ import {
   Vibration,
   Keyboard,
 } from 'react-native';
-import { useState } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ZorrroText } from '$/components';
 import ZORRRO_SVG from '$/assets/svg/svg';
 import { Private } from '$/screens';
+import { ZORRRO_FONTS } from '$/styles';
 
 const { width } = Dimensions.get('window');
 const { ZorrroHaptics } = NativeModules;
@@ -75,7 +77,7 @@ export default TabLayout;
 const getIcon = (routeName: keyof BottomTabsTypes) => {
   switch (routeName) {
     case 'Chats':
-      return ZORRRO_SVG.TAB_LAYOUT.CHATS;
+      return ZORRRO_SVG.TAB_LAYOUT.CHAT;
     case 'Channels':
       return ZORRRO_SVG.TAB_LAYOUT.CHANNELS;
     case 'SOS':
@@ -84,10 +86,22 @@ const getIcon = (routeName: keyof BottomTabsTypes) => {
       return ZORRRO_SVG.TAB_LAYOUT.PROFILE;
   }
 };
-
+const getActiveIcon = (routeName: keyof BottomTabsTypes) => {
+  switch (routeName) {
+    case 'Chats':
+      return ZORRRO_SVG.TAB_LAYOUT.CHATS_ACTIVE;
+    case 'Channels':
+      return ZORRRO_SVG.TAB_LAYOUT.CHANNELS_ACTIVE;
+    case 'SOS':
+      return ZORRRO_SVG.TAB_LAYOUT.SOS_ACTIVE;
+    case 'Profile':
+      return ZORRRO_SVG.TAB_LAYOUT.PROFILE_ACTIVE;
+  }
+};
 /* ================= TAB BAR ================= */
 
 const CustomTabBar = ({ state, navigation }: any) => {
+  const insets = useSafeAreaInsets();
   const tabWidth = width / state.routes.length;
   const translateX = useRef(new Animated.Value(0)).current;
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -120,7 +134,7 @@ const CustomTabBar = ({ state, navigation }: any) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { height: 70 + insets.bottom, paddingBottom: insets.bottom }]}>
       {/* 🔵 Sliding Indicator */}
       <Animated.View
         style={[
@@ -157,6 +171,7 @@ const AnimatedTabItem = ({ route, isFocused, onPress }: any) => {
   const scale = useRef(new Animated.Value(1)).current;
 
   const Icon = getIcon(route.name);
+  const ActiveIcon = getActiveIcon(route.name);
 
   useEffect(() => {
     Animated.spring(scale, {
@@ -175,11 +190,20 @@ const AnimatedTabItem = ({ route, isFocused, onPress }: any) => {
       ]}
     >
       <Animated.View style={{ transform: [{ scale }] }}>
-        <Icon
-          width={24}
-          height={24}
-          color={isFocused ? '#0070C0' : '#8A94A6'}
-        />
+        {
+          isFocused ?
+            <ActiveIcon
+              width={24}
+              height={24}
+              color={isFocused ? '#0070C0' : '#8A94A6'}
+            />
+            :
+            <Icon
+              width={24}
+              height={24}
+              color={isFocused ? '#0070C0' : '#8A94A6'}
+            />
+        }
       </Animated.View>
 
       <ZorrroText
@@ -216,7 +240,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     marginTop: 4,
-    fontWeight: '500',
+    fontFamily: ZORRRO_FONTS?.[700]?.normal,
   },
 
   indicator: {
