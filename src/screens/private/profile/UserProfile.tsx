@@ -2,14 +2,15 @@ import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
-import { ZorrroView } from '$/components';
+import { ScreenStatusBar, ZorrroView } from '$/components';
+import { ZORRRO_COLORS } from '$/styles';
 
 const UserProfile = () => {
     const navigation = useNavigation<any>();
 
     return (
-        <ZorrroView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <ZorrroView safe style={styles.safeArea}>
+            <ScreenStatusBar backgroundColor={ZORRRO_COLORS?.WHITE} barStyle="dark-content" />
 
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
