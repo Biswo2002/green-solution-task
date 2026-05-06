@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding';
+import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding.style';
 
 type SosFabProps = {
     onPress: () => void;

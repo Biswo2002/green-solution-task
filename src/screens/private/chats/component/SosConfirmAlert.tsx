@@ -1,7 +1,7 @@
 import React from 'react';
 import { Animated, Modal, Text, TouchableOpacity } from 'react-native';
 import { ZorrroView } from '$/components';
-import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding';
+import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding.style';
 
 type SosConfirmAlertProps = {
     visible: boolean;
