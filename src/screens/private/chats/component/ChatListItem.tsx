@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import { ZORRRO_SVG } from '../../../../assets';
 import { ZorrroView } from '$/components';
-import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding';
+import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding.style';
 
 export type ChatListItemData = {
     id: string;
