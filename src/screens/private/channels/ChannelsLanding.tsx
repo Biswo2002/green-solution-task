@@ -1,7 +1,3 @@
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
-import React, { useState } from 'react';
-import { ZORRRO_SVG } from '../../../assets';
-
 const CHANNELS_DATA = [
     {
         id: '1',
@@ -48,243 +44,321 @@ const CHANNELS_DATA = [
         time: '15 min',
         unread: 1,
     },
+    {
+        id: '50',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
+    {
+        id: '420',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
+    {
+        id: '544d',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
+    {
+        id: '3fjf',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
+    {
+        id: '4bub',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
+    {
+        id: '5slsl',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
+    {
+        id: '3smkd',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
+    {
+        id: '4posn',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
+    {
+        id: '5dd',
+        name: 'Revenue District news',
+        type: 'District',
+        members: '48 members',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+    },
 ];
 import { useNavigation } from '@react-navigation/native';
-import { PrivateNavigationProp, PrivateScreenProps } from '$/routes/private/types';
+import React, { useState } from 'react';
+import {
+    TouchableOpacity,
+    StyleSheet,
+    StatusBar,
+    TextInput,
+    FlatList,
+    Text,
+    View,
+} from 'react-native';
+import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding.style';
+import { PrivateScreenProps } from '$/routes/private/types';
+import { ZORRRO_COLORS, ZORRRO_FONTS } from '$/styles';
+import { ScreenStatusBar, ZorrroView } from '$/components';
+import { ZORRRO_SVG } from '$/assets';
 
 const ChannelsLanding = () => {
     const { navigate } = useNavigation<PrivateScreenProps>();
     const [selectedFilter, setSelectedFilter] = useState('All');
+    const [isSearchVisible, setIsSearchVisible] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const filteredData = selectedFilter === 'All'
-        ? CHANNELS_DATA
-        : CHANNELS_DATA.filter(item => item.type === selectedFilter);
+    const filteredData = CHANNELS_DATA.filter(item => {
+        const matchesFilter =
+            selectedFilter === 'All' || item.type === selectedFilter;
+        const matchesSearch = item.name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+        return matchesFilter && matchesSearch;
+    });
 
-    const renderChannelItem = ({ item }: { item: typeof CHANNELS_DATA[0] }) => (
+    const renderChannelItem = ({ item }: { item: (typeof CHANNELS_DATA)[0] }) => (
         <TouchableOpacity
-            style={styles.channelItem}
+            style={ChatsLandingStyles.chatItem}
             onPress={() => navigate('ChannelsListening')}
         >
-            <View style={styles.iconContainer}>
-                <ZORRRO_SVG.TAB_LAYOUT.CHANNELS width={24} height={24} fill="#0084C8" />
-            </View>
-            <View style={styles.channelDetails}>
-                <View style={styles.channelHeader}>
-                    <Text style={styles.channelName}>{item.name}</Text>
-                    <Text style={styles.channelTime}>{item.time}</Text>
-                </View>
-                <View style={styles.typeContainer}>
-                    <View style={styles.typeBadge}>
-                        <Text style={styles.typeText}>{item.type}</Text>
-                    </View>
-                    <Text style={styles.membersText}>{item.members}</Text>
-                </View>
-                <View style={styles.messageRow}>
-                    <Text style={styles.checkmarks}>✓ </Text>
-                    <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage}</Text>
+            <ZorrroView style={ChatsLandingStyles.avatarContainer}>
+                <ZORRRO_SVG.TAB_LAYOUT.CHANNELS_ACTIVE width={24} height={24} />
+            </ZorrroView>
+            <ZorrroView style={ChatsLandingStyles.chatDetails}>
+                <ZorrroView style={ChatsLandingStyles.chatHeader}>
+                    <Text style={ChatsLandingStyles.chatName}>{item.name}</Text>
+                    <Text style={[ChatsLandingStyles.chatTime]}>{item.time}</Text>
+                </ZorrroView>
+                <ZorrroView style={ChatsLandingStyles.roleContainer}>
+                    <ZorrroView
+                        style={[
+                            ChatsLandingStyles.roleBadge,
+                            {
+                                backgroundColor: '#EAEDF0',
+                            },
+                        ]}
+                    >
+                        <Text style={ChatsLandingStyles.roleText}>{item.type}</Text>
+                    </ZorrroView>
+                    <Text
+                        style={[
+                            ChatsLandingStyles.departmentText,
+                            {
+                                marginLeft: 6,
+                            },
+                        ]}
+                    >
+                        {item.members}
+                    </Text>
+                </ZorrroView>
+                <ZorrroView style={ChatsLandingStyles.messageRow}>
+                    <ZORRRO_SVG.SCREENS.DONE_ALL
+                        width={16}
+                        height={16}
+                        color="#DAE0E7"
+                        style={ChatsLandingStyles.checkmarks}
+                        fill="#DAE0E7"
+                    />
+                    <Text style={ChatsLandingStyles.lastMessage} numberOfLines={1}>
+                        {item.lastMessage}
+                    </Text>
                     {item.unread > 0 && (
-                        <View style={styles.unreadBadgeContainer}>
-                            <View style={styles.unreadBadge}>
-                                <Text style={styles.unreadBadgeText}>{item.unread}</Text>
-                            </View>
-                        </View>
+                        <ZorrroView style={ChatsLandingStyles.unreadBadgeContainer}>
+                            <ZorrroView style={ChatsLandingStyles.unreadBadge}>
+                                <Text style={ChatsLandingStyles.unreadBadgeText}>
+                                    {item.unread}
+                                </Text>
+                            </ZorrroView>
+                        </ZorrroView>
                     )}
-                </View>
-            </View>
+                </ZorrroView>
+            </ZorrroView>
         </TouchableOpacity>
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <View style={styles.container}>
+        <ZorrroView safe edges={['top', 'left', 'right']} style={ChatsLandingStyles.safeArea}>
+            <ScreenStatusBar backgroundColor={ZORRRO_COLORS?.WHITE} barStyle="dark-content" />
+
+            <ZorrroView style={ChatsLandingStyles.container}>
                 {/* Header */}
-                <View style={styles.header}>
-                    <View>
+                <ZorrroView style={styles.header}>
+                    <ZorrroView>
                         <Text style={styles.headerTitle}>Channels</Text>
                         <Text style={styles.headerSubtitle}>Broadcast Messages</Text>
-                    </View>
-                    <TouchableOpacity>
-                        <ZORRRO_SVG.SCREENS.SEARCH width={24} height={24} style={styles.searchIcon} />
+                    </ZorrroView>
+                    <TouchableOpacity
+                        onPress={() => setIsSearchVisible(!isSearchVisible)}
+                    >
+                        <ZORRRO_SVG.SCREENS.SEARCH
+                            width={24}
+                            height={24}
+                            style={styles.searchIcon}
+                        />
                     </TouchableOpacity>
-                </View>
+                </ZorrroView>
+
+                {/* Search Bar */}
+                {isSearchVisible && (
+                    <View style={styles.searchContainer}>
+                        <ZORRRO_SVG.SCREENS.SEARCH
+                            width={20}
+                            height={20}
+                            style={styles.searchIconInside}
+                        />
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Search channels..."
+                            placeholderTextColor="#9CA3AF"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            autoFocus
+                        />
+                        <TouchableOpacity
+                            onPress={() => {
+                                setIsSearchVisible(false);
+                                setSearchQuery('');
+                            }}
+                            style={styles.closeButton}
+                        >
+                            <Text style={styles.closeIconText}>✕</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
 
                 {/* Filters */}
-                <View style={styles.filtersContainer}>
-                    {['All', 'Global', 'Department', 'District'].map((filter) => (
+                <ZorrroView style={ChatsLandingStyles.filtersContainer}>
+                    {['All', 'Global', 'Department', 'District'].map(filter => (
                         <TouchableOpacity
                             key={filter}
-                            style={[styles.filterChip, selectedFilter === filter && styles.filterChipActive]}
+                            style={[
+                                ChatsLandingStyles.filterChip,
+                                selectedFilter === filter &&
+                                ChatsLandingStyles.filterChipActive,
+                            ]}
                             onPress={() => setSelectedFilter(filter)}
                         >
-                            <Text style={[styles.filterText, selectedFilter === filter && styles.filterTextActive]}>{filter}</Text>
+                            <Text
+                                style={[
+                                    ChatsLandingStyles.filterText,
+                                    selectedFilter === filter &&
+                                    ChatsLandingStyles.filterTextActive,
+                                ]}
+                            >
+                                {filter}
+                            </Text>
                         </TouchableOpacity>
                     ))}
-                </View>
+                </ZorrroView>
 
                 {/* Channel List */}
                 <FlatList
                     data={filteredData}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={item => item.id}
                     renderItem={renderChannelItem}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContainer}
                 />
-            </View>
-        </SafeAreaView>
+            </ZorrroView>
+        </ZorrroView>
     );
 };
 
 export default ChannelsLanding;
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: 15,
-        paddingBottom: 20,
+        marginTop: 6,
+        marginBottom: 16,
     },
     headerTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#111827',
+        fontSize: 20,
+        fontFamily: ZORRRO_FONTS?.[700]?.normal,
+        color: '#171D26',
     },
     headerSubtitle: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginTop: 4,
+        fontSize: 12,
+        fontFamily: ZORRRO_FONTS?.[500]?.normal,
+        color: '#6F7D90',
+        // marginTop: 4,
     },
     searchIcon: {
         opacity: 0.7,
     },
-    filtersContainer: {
+    searchContainer: {
         flexDirection: 'row',
-        paddingHorizontal: 20,
+        alignItems: 'center',
+        backgroundColor: '#F4F5F7',
+        marginHorizontal: 20,
+        borderRadius: 24,
+        paddingHorizontal: 15,
+        height: 48,
         marginBottom: 15,
     },
-    filterChip: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
+    searchIconInside: {
         marginRight: 10,
+        opacity: 0.5,
     },
-    filterChipActive: {
-        borderColor: '#0084C8',
-        backgroundColor: '#FFFFFF',
+    searchInput: {
+        flex: 1,
+        fontSize: 16,
+        color: '#1F2937',
     },
-    filterText: {
-        fontSize: 14,
-        color: '#6B7280',
-        fontWeight: '500',
+    closeButton: {
+        padding: 5,
     },
-    filterTextActive: {
-        color: '#0084C8',
+    closeIconText: {
+        fontSize: 18,
+        color: '#9CA3AF',
+        fontWeight: 'bold',
     },
     listContainer: {
         paddingBottom: 20,
-    },
-    channelItem: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        alignItems: 'flex-start',
-    },
-    iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#E5F1FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 15,
-    },
-    channelDetails: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    channelHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 2,
-    },
-    channelName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#1F2937',
-    },
-    channelTime: {
-        fontSize: 12,
-        color: '#9CA3AF',
-    },
-    typeContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 4,
-    },
-    typeBadge: {
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        marginRight: 8,
-    },
-    typeText: {
-        fontSize: 10,
-        color: '#111827',
-        fontWeight: '700',
-    },
-    membersText: {
-        fontSize: 12,
-        color: '#9CA3AF',
-    },
-    messageRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        position: 'relative',
-        paddingRight: 30,
-    },
-    checkmarks: {
-        fontSize: 12,
-        color: '#D1D5DB',
-        marginRight: 4,
-    },
-    lastMessage: {
-        fontSize: 14,
-        color: '#6B7280',
-        flex: 1,
-    },
-    unreadBadgeContainer: {
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        bottom: 0,
-        justifyContent: 'center',
-    },
-    unreadBadge: {
-        backgroundColor: '#0084C8',
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    unreadBadgeText: {
-        color: '#FFFFFF',
-        fontSize: 10,
-        fontWeight: 'bold',
     },
 });

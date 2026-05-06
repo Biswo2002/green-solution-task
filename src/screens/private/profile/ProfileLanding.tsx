@@ -1,114 +1,106 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, StatusBar } from 'react-native';
+import { StyleSheet, Text, ScrollView } from 'react-native';
 import React from 'react';
 import { ZORRRO_SVG } from '../../../assets';
+import { ScreenStatusBar, ZorrroView } from '$/components';
+import { ZORRRO_COLORS, ZORRRO_FONTS } from '$/styles';
+import { getMargin } from '$/components/helper';
+
+const PROFILE_DETAILS = [
+    {
+        id: 'email',
+        label: 'Email',
+        value: 'rajesh.kumar@gov.in',
+        Icon: ZORRRO_SVG.PROFILE_TAB.EMAIL,
+    },
+    {
+        id: 'phone',
+        label: 'Phone',
+        value: '+91 98765 43210',
+        Icon: ZORRRO_SVG.PROFILE_TAB.PHONE,
+    },
+    {
+        id: 'department',
+        label: 'Department',
+        value: 'Revenue',
+        Icon: ZORRRO_SVG.PROFILE_TAB.REVENUE,
+    },
+    {
+        id: 'district',
+        label: 'District',
+        value: 'kolkata',
+        Icon: ZORRRO_SVG.PROFILE_TAB.LOCATION,
+    },
+    {
+        id: 'joinedOn',
+        label: 'Joined on',
+        value: 'Jan 2024',
+        Icon: ZORRRO_SVG.PROFILE_TAB.JOINING,
+    },
+];
+
+const SECURITY_ITEMS = [
+    {
+        id: 'encryption',
+        title: 'End-to-end encrypted',
+        description: 'All messages are secured',
+        Icon: ZORRRO_SVG.PROFILE_TAB.END_TO_END,
+    },
+    {
+        id: 'device',
+        title: 'Device Verified',
+        description: 'IMEI bound . MDM enrolled',
+        Icon: ZORRRO_SVG.PROFILE_TAB.DEVICE,
+    },
+];
 
 const ProfileLanding = () => {
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                
-                {/* Header Section */}
-                <View style={styles.headerContainer}>
-                    <View style={styles.avatarWrapper}>
-                        <View style={styles.avatar}>
+        <ZorrroView safe edges={['top', 'left', 'right']} style={styles.safeArea}>
+            <ScreenStatusBar backgroundColor={ZORRRO_COLORS?.WHITE} barStyle="dark-content" />
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <ZorrroView style={styles.headerContainer}>
+                    <ZorrroView style={styles.avatarWrapper}>
+                        <ZorrroView style={styles.avatar}>
                             <Text style={styles.avatarText}>RK</Text>
-                        </View>
-                        <View style={styles.statusDot} />
-                    </View>
+                        </ZorrroView>
+                        <ZorrroView style={styles.statusDot} />
+                    </ZorrroView>
                     <Text style={styles.profileName}>Rajesh Kumar</Text>
-                </View>
+                </ZorrroView>
+                <ZorrroView style={styles.divider} />
 
-                {/* Profile Details List */}
-                <View style={styles.sectionContainer}>
-                    {/* Email */}
-                    <View style={styles.listItem}>
-                        <View style={styles.iconContainer}>
-                            <ZORRRO_SVG.PROFILE_TAB.EMAIL width={20} height={20} fill="#6B7280" />
-                        </View>
-                        <View style={styles.itemContent}>
-                            <Text style={styles.itemLabel}>Email</Text>
-                            <Text style={styles.itemValue}>rajesh.kumar@gov.in</Text>
-                        </View>
-                    </View>
+                <ZorrroView style={styles.sectionContainer}>
+                    {PROFILE_DETAILS.map(item => (
+                        <ZorrroView key={item.id} style={styles.listItem}>
+                            <ZorrroView style={styles.iconContainer}>
+                                <item.Icon width={20} height={20} fill="#6B7280" />
+                            </ZorrroView>
+                            <ZorrroView style={styles.itemContent}>
+                                <Text style={styles.itemLabel}>{item.label}</Text>
+                                <Text style={styles.itemValue}>{item.value}</Text>
+                            </ZorrroView>
+                        </ZorrroView>
+                    ))}
+                </ZorrroView>
 
-                    {/* Phone */}
-                    <View style={styles.listItem}>
-                        <View style={styles.iconContainer}>
-                            <ZORRRO_SVG.PROFILE_TAB.PHONE width={20} height={20} fill="#6B7280" />
-                        </View>
-                        <View style={styles.itemContent}>
-                            <Text style={styles.itemLabel}>Phone</Text>
-                            <Text style={styles.itemValue}>+91 98765 43210</Text>
-                        </View>
-                    </View>
+                <ZorrroView style={styles.divider} />
 
-                    {/* Department */}
-                    <View style={styles.listItem}>
-                        <View style={styles.iconContainer}>
-                            <ZORRRO_SVG.PROFILE_TAB.REVENUE width={20} height={20} fill="#6B7280" />
-                        </View>
-                        <View style={styles.itemContent}>
-                            <Text style={styles.itemLabel}>Department</Text>
-                            <Text style={styles.itemValue}>Revenue</Text>
-                        </View>
-                    </View>
-
-                    {/* District */}
-                    <View style={styles.listItem}>
-                        <View style={styles.iconContainer}>
-                            <ZORRRO_SVG.PROFILE_TAB.LOCATION width={20} height={20} fill="#6B7280" />
-                        </View>
-                        <View style={styles.itemContent}>
-                            <Text style={styles.itemLabel}>District</Text>
-                            <Text style={styles.itemValue}>kolkata</Text>
-                        </View>
-                    </View>
-
-                    {/* Joined on */}
-                    <View style={styles.listItem}>
-                        <View style={styles.iconContainer}>
-                            <ZORRRO_SVG.PROFILE_TAB.JOINING width={20} height={20} fill="#6B7280" />
-                        </View>
-                        <View style={styles.itemContent}>
-                            <Text style={styles.itemLabel}>Joined on</Text>
-                            <Text style={styles.itemValue}>Jan 2024</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Divider */}
-                <View style={styles.divider} />
-
-                {/* Security Section */}
-                <View style={styles.securityContainer}>
+                <ZorrroView style={styles.securityContainer}>
                     <Text style={styles.sectionTitle}>Security</Text>
-
-                    {/* End-to-end encrypted */}
-                    <View style={styles.securityItem}>
-                        <View style={styles.securityIconWrapper}>
-                            <ZORRRO_SVG.PROFILE_TAB.END_TO_END width={24} height={24} fill="#0084C8" />
-                        </View>
-                        <View style={styles.itemContent}>
-                            <Text style={styles.securityValue}>End-to-end encrypted</Text>
-                            <Text style={styles.securityDesc}>All messages are secured</Text>
-                        </View>
-                    </View>
-
-                    {/* Device Verified */}
-                    <View style={styles.securityItem}>
-                        <View style={styles.securityIconWrapper}>
-                            <ZORRRO_SVG.PROFILE_TAB.DEVICE width={24} height={24} fill="#0084C8" />
-                        </View>
-                        <View style={styles.itemContent}>
-                            <Text style={styles.securityValue}>Device Verified</Text>
-                            <Text style={styles.securityDesc}>IMEI bound . MDM enrolled</Text>
-                        </View>
-                    </View>
-                </View>
-                
+                    {SECURITY_ITEMS.map(item => (
+                        <ZorrroView key={item.id} style={styles.securityItem}>
+                            <ZorrroView style={styles.securityIconWrapper}>
+                                <item.Icon width={24} height={24} fill="#0084C8" />
+                            </ZorrroView>
+                            <ZorrroView style={styles.itemContent}>
+                                <Text style={styles.securityValue}>{item.title}</Text>
+                                <Text style={styles.securityDesc}>{item.description}</Text>
+                            </ZorrroView>
+                        </ZorrroView>
+                    ))}
+                </ZorrroView>
             </ScrollView>
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 
@@ -117,15 +109,12 @@ export default ProfileLanding;
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: ZORRRO_COLORS?.WHITE,
     },
     headerContainer: {
         alignItems: 'center',
         paddingVertical: 30,
+        marginTop: getMargin(34),
     },
     avatarWrapper: {
         position: 'relative',
@@ -151,18 +140,18 @@ const styles = StyleSheet.create({
         width: 16,
         height: 16,
         borderRadius: 8,
-        backgroundColor: '#10B981', // Green status color
+        backgroundColor: '#10B981',
         borderWidth: 2,
-        borderColor: '#FFFFFF',
+        borderColor: ZORRRO_COLORS?.WHITE,
     },
     profileName: {
         fontSize: 20,
-        fontWeight: 'bold',
-        color: '#111827',
+        fontFamily: ZORRRO_FONTS?.[700]?.normal,
+        color: '#171D26',
     },
     sectionContainer: {
-        paddingHorizontal: 20,
-        marginBottom: 10,
+        paddingHorizontal: getMargin(16),
+        marginBottom: getMargin(10),
     },
     listItem: {
         flexDirection: 'row',
@@ -191,8 +180,7 @@ const styles = StyleSheet.create({
     },
     divider: {
         height: 1,
-        backgroundColor: '#E5E7EB',
-        marginHorizontal: 20,
+        backgroundColor: '#DAE0E7',
         marginVertical: 10,
     },
     securityContainer: {

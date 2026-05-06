@@ -2,14 +2,16 @@ import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
+import { ScreenStatusBar, ZorrroView } from '$/components';
+import { ZORRRO_COLORS } from '$/styles';
 
 const GroupProfile = () => {
     const navigation = useNavigation<any>();
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            
+        <ZorrroView safe style={styles.safeArea}>
+            <ScreenStatusBar backgroundColor={ZORRRO_COLORS?.WHITE} barStyle="dark-content" />
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <ZORRRO_SVG.SCREENS.GO_BACK width={24} height={24} color="#111827" />
@@ -55,7 +57,7 @@ const GroupProfile = () => {
                     </View>
                     <View style={styles.detailRow}>
                         <View style={styles.detailIconBox}>
-                            <ZORRRO_SVG.TAB_LAYOUT.CHATS width={20} height={20} fill="#6B7280" />
+                            <ZORRRO_SVG.TAB_LAYOUT.CHAT width={20} height={20} fill="#6B7280" />
                         </View>
                         <View>
                             <Text style={styles.detailLabel}>Who can Message</Text>
@@ -84,7 +86,7 @@ const GroupProfile = () => {
                 {/* Members Section */}
                 <View style={styles.membersSection}>
                     <Text style={styles.sectionTitleSubtitle}>Members (48)</Text>
-                    
+
                     {/* Admin */}
                     <View style={styles.memberRow}>
                         <View style={styles.memberAvatar}>
@@ -117,7 +119,7 @@ const GroupProfile = () => {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </ZorrroView>
     );
 };
 

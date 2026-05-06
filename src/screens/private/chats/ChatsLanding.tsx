@@ -1,13 +1,31 @@
-import { StyleSheet, Text, View, TextInput, FlatList, TouchableOpacity, SafeAreaView, StatusBar, Modal, Animated } from 'react-native';
-import React, { useState, useRef, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import React, { useState, useRef } from 'react';
+import {
+    TouchableOpacity,
+    StatusBar,
+    TextInput,
+    Animated,
+    FlatList,
+    Text,
+    View,
+} from 'react-native';
+import { ChatsLandingStyles } from '$/styles/screenStyle/ChatsLanding.style';
 import { ZORRRO_SVG } from '../../../assets';
+import { ScreenStatusBar, ZorrroView } from '$/components';
+import { ZORRRO_COLORS } from '$/styles';
+import {
+    ChatListItem,
+    SosAlertOverlay,
+    SosConfirmAlert,
+    SosFab,
+    type ChatListItemData,
+} from './component';
 
-const CHATS_DATA = [
+const CHATS_DATA: ChatListItemData[] = [
     {
         id: '1',
-        name: 'Priya Sharma',
-        initials: 'PS',
+        name: 'Biswopaban Nayak',
+        initials: 'BN',
         role: 'Department Admin',
         department: 'Revenue',
         lastMessage: 'Please share the updated figures',
@@ -17,8 +35,8 @@ const CHATS_DATA = [
     },
     {
         id: '2',
-        name: 'Priya Sharma',
-        initials: 'PS',
+        name: 'Neilank Das',
+        initials: 'ND',
         role: 'District Admin',
         department: 'Revenue',
         lastMessage: 'Please share the updated figures',
@@ -28,8 +46,8 @@ const CHATS_DATA = [
     },
     {
         id: '3',
-        name: 'Rahul Kumar',
-        initials: 'RK',
+        name: 'Amit Thakur',
+        initials: 'AT',
         role: 'Super Admin',
         lastMessage: 'Please share the updated figures',
         time: '15 min',
@@ -65,8 +83,44 @@ const CHATS_DATA = [
     },
     {
         id: '7',
-        name: 'Amit Thakur',
-        initials: 'AT',
+        name: 'Rahul Thakur',
+        initials: 'RT',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+        isGroup: false,
+    },
+    {
+        id: '8',
+        name: 'Revenue Officers - Kolka...',
+        initials: 'RO',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+        isGroup: true,
+    },
+    {
+        id: '9',
+        name: 'Revenue Officers - Kolka...',
+        initials: 'RO',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+        isGroup: true,
+    },
+    {
+        id: '71001',
+        name: 'Sagnick Manna',
+        initials: 'SM',
+        lastMessage: 'Please share the updated figures',
+        time: '15 min',
+        unread: 1,
+        isGroup: false,
+    },
+    {
+        id: '2920',
+        name: 'Rahul Kumar',
+        initials: 'RK',
         lastMessage: 'Please share the updated figures',
         time: '15 min',
         unread: 1,
@@ -77,10 +131,12 @@ const CHATS_DATA = [
 const ChatsLanding = () => {
     const navigation = useNavigation<any>();
     const [selectedFilter, setSelectedFilter] = useState('All');
-    
+
     // SOS Overlay State
     const [isSosOverlayVisible, setIsSosOverlayVisible] = useState(false);
+    const [isSosConfirmVisible, setIsSosConfirmVisible] = useState(false);
     const rippleAnim = useRef(new Animated.Value(0)).current;
+    const confirmAnim = useRef(new Animated.Value(0)).current;
     const timeoutRef = useRef<any>(null);
 
     const startRipple = () => {
@@ -90,17 +146,49 @@ const ChatsLanding = () => {
                 toValue: 1,
                 duration: 1500,
                 useNativeDriver: true,
-            })
+            }),
         ).start();
     };
 
-    const handleSosPress = () => {
+    const triggerSosAlert = () => {
         setIsSosOverlayVisible(true);
         startRipple();
         timeoutRef.current = setTimeout(() => {
             setIsSosOverlayVisible(false);
             navigation.navigate('SosDetails', { status: 'Active' });
         }, 2000);
+    };
+
+    const showSosConfirm = () => {
+        setIsSosConfirmVisible(true);
+        confirmAnim.setValue(0);
+        Animated.spring(confirmAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+            speed: 15,
+            bounciness: 8,
+        }).start();
+    };
+
+    const hideSosConfirm = (onComplete?: () => void) => {
+        Animated.timing(confirmAnim, {
+            toValue: 0,
+            duration: 180,
+            useNativeDriver: true,
+        }).start(() => {
+            setIsSosConfirmVisible(false);
+            onComplete?.();
+        });
+    };
+
+    const handleSosPress = () => {
+        showSosConfirm();
+    };
+
+    const handleConfirmSos = () => {
+        hideSosConfirm(() => {
+            triggerSosAlert();
+        });
     };
 
     const handleCancelSos = () => {
@@ -118,413 +206,128 @@ const ChatsLanding = () => {
         return true;
     });
 
-    const renderChatItem = ({ item }: { item: typeof CHATS_DATA[0] }) => (
-        <TouchableOpacity style={styles.chatItem} onPress={() => navigation.navigate('ChatDetails', { chatId: item.id, isGroup: item.isGroup })}>
-            <View style={styles.avatarContainer}>
-                {item.isGroup ? (
-                    <Text style={styles.avatarText}>👥</Text>
-                ) : (
-                    <Text style={styles.avatarText}>{item.initials}</Text>
-                )}
-            </View>
-            <View style={styles.chatDetails}>
-                <View style={styles.chatHeader}>
-                    <Text style={styles.chatName}>{item.name}</Text>
-                    <Text style={styles.chatTime}>{item.time}</Text>
-                </View>
-                {item.role && (
-                    <View style={styles.roleContainer}>
-                        <View style={styles.roleBadge}>
-                            <Text style={styles.roleText}>{item.role}</Text>
-                        </View>
-                        {item.department && (
-                            <Text style={styles.departmentText}> • {item.department}</Text>
-                        )}
-                    </View>
-                )}
-                <View style={styles.messageRow}>
-                    {item.unread === 0 && <Text style={styles.checkmarks}>✓✓ </Text>}
-                    <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage}</Text>
-                    {item.unread > 0 && (
-                        <View style={styles.unreadBadgeContainer}>
-                           <View style={styles.unreadBadge}>
-                                <Text style={styles.unreadBadgeText}>{item.unread}</Text>
-                           </View>
-                        </View>
-                    )}
-                </View>
-            </View>
-        </TouchableOpacity>
+    const renderChatItem = ({ item }: { item: ChatListItemData }) => (
+        <ChatListItem
+            item={item}
+            onPress={() =>
+                navigation.navigate('ChatDetails', {
+                    chatId: item.id,
+                    isGroup: item.isGroup,
+                })
+            }
+        />
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <View style={styles.container}>
+        <ZorrroView safe edges={['top', 'left', 'right']} style={ChatsLandingStyles.safeArea}>
+            <ScreenStatusBar backgroundColor={ZORRRO_COLORS?.WHITE} barStyle="dark-content" />
+
+            <ZorrroView style={ChatsLandingStyles.container}>
                 {/* Header */}
-                <View style={styles.header}>
+                <ZorrroView style={ChatsLandingStyles.header}>
                     <ZORRRO_SVG.WB_LOGO width={40} height={40} />
-                    <Text style={styles.headerTitle}>Chat App</Text>
-                </View>
+                    <Text style={ChatsLandingStyles.headerTitle}>Chat App</Text>
+                </ZorrroView>
 
                 {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <ZORRRO_SVG.SCREENS.SEARCH width={20} height={20} style={styles.searchIcon} />
+                <ZorrroView style={ChatsLandingStyles.searchContainer}>
+                    <ZORRRO_SVG.SCREENS.SEARCH
+                        width={20}
+                        height={20}
+                        color="#6F7D90"
+                        style={ChatsLandingStyles.searchIcon}
+                    />
                     <TextInput
-                        style={styles.searchInput}
+                        style={ChatsLandingStyles.searchInput}
                         placeholder="Search chats..."
                         placeholderTextColor="#9CA3AF"
                     />
-                </View>
+                </ZorrroView>
 
                 {/* Filters */}
-                <View style={styles.filtersContainer}>
+                <ZorrroView style={ChatsLandingStyles.filtersContainer}>
                     <TouchableOpacity
-                        style={[styles.filterChip, selectedFilter === 'All' && styles.filterChipActive]}
+                        style={[
+                            ChatsLandingStyles.filterChip,
+                            selectedFilter === 'All' && ChatsLandingStyles.filterChipActive,
+                        ]}
                         onPress={() => setSelectedFilter('All')}
                     >
-                        <Text style={[styles.filterText, selectedFilter === 'All' && styles.filterTextActive]}>All</Text>
+                        <Text
+                            style={[
+                                ChatsLandingStyles.filterText,
+                                selectedFilter === 'All' && ChatsLandingStyles.filterTextActive,
+                            ]}
+                        >
+                            All
+                        </Text>
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity
-                        style={[styles.filterChip, selectedFilter === 'Unread' && styles.filterChipActive]}
+                        style={[
+                            ChatsLandingStyles.filterChip,
+                            selectedFilter === 'Unread' && ChatsLandingStyles.filterChipActive,
+                        ]}
                         onPress={() => setSelectedFilter('Unread')}
                     >
-                        <Text style={[styles.filterText, selectedFilter === 'Unread' && styles.filterTextActive]}>Unread</Text>
-                        <View style={styles.filterBadge}>
-                            <Text style={styles.filterBadgeText}>4</Text>
+                        <Text
+                            style={[
+                                ChatsLandingStyles.filterText,
+                                selectedFilter === 'Unread' && ChatsLandingStyles.filterTextActive,
+                            ]}
+                        >
+                            Unread
+                        </Text>
+                        <View style={ChatsLandingStyles.filterBadge}>
+                            <Text style={ChatsLandingStyles.filterBadgeText}>4</Text>
                         </View>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.filterChip, selectedFilter === 'Groups' && styles.filterChipActive]}
+                        style={[
+                            ChatsLandingStyles.filterChip,
+                            selectedFilter === 'Groups' && ChatsLandingStyles.filterChipActive,
+                        ]}
                         onPress={() => setSelectedFilter('Groups')}
                     >
-                        <Text style={[styles.filterText, selectedFilter === 'Groups' && styles.filterTextActive]}>Groups</Text>
+                        <Text
+                            style={[
+                                ChatsLandingStyles.filterText,
+                                selectedFilter === 'Groups' && ChatsLandingStyles.filterTextActive,
+                            ]}
+                        >
+                            Groups
+                        </Text>
                     </TouchableOpacity>
-                </View>
+                </ZorrroView>
 
                 {/* Chat List */}
                 <FlatList
                     data={filteredChats}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={item => item.id}
                     renderItem={renderChatItem}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.listContainer}
+                    contentContainerStyle={ChatsLandingStyles.listContainer}
                 />
 
-                {/* Floating SOS Button */}
-                <View style={styles.fabOuterGlow}>
-                    <TouchableOpacity 
-                        style={styles.fabButton} 
-                        activeOpacity={0.8}
-                        onPress={handleSosPress}
-                    >
-                        <Text style={styles.fabText}>SOS</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+                <SosFab onPress={handleSosPress} />
+            </ZorrroView>
 
-            {/* SOS Animated Overlay */}
-            <Modal visible={isSosOverlayVisible} transparent animationType="fade">
-                <View style={styles.overlayContainer}>
-                    <View style={styles.rippleContainer}>
-                        <Animated.View style={[styles.ripple, {
-                            transform: [{ scale: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 2.5] }) }],
-                            opacity: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 0] })
-                        }]} />
-                        <Animated.View style={[styles.ripple, {
-                            transform: [{ scale: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.8] }) }],
-                            opacity: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] })
-                        }]} />
-                        <View style={styles.overlaySosButton}>
-                            <Text style={styles.overlaySosText}>SOS</Text>
-                        </View>
-                    </View>
-                    
-                    <Text style={styles.overlayTitle}>Sending Emergency Alert...</Text>
-                    <Text style={styles.overlaySubtitle}>
-                        Your location and Details are being Shared{'\n'}with the nearest control room.
-                    </Text>
-                    
-                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancelSos}>
-                        <Text style={styles.cancelButtonText}>cancel</Text>
-                    </TouchableOpacity>
-                </View>
-            </Modal>
-        </SafeAreaView>
+            <SosAlertOverlay
+                visible={isSosOverlayVisible}
+                rippleAnim={rippleAnim}
+                onCancel={handleCancelSos}
+            />
+            <SosConfirmAlert
+                visible={isSosConfirmVisible}
+                animationValue={confirmAnim}
+                onCancel={() => hideSosConfirm()}
+                onConfirm={handleConfirmSos}
+            />
+        </ZorrroView>
     );
 };
 
 export default ChatsLanding;
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 15,
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#0084C8', // Match logo color closely
-        marginLeft: 12,
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F4F5F7',
-        marginHorizontal: 20,
-        borderRadius: 25,
-        paddingHorizontal: 15,
-        height: 48,
-        marginBottom: 20,
-    },
-    searchIcon: {
-        marginRight: 10,
-        opacity: 0.5,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 16,
-        color: '#1F2937',
-    },
-    filtersContainer: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        marginBottom: 10,
-    },
-    filterChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginRight: 10,
-    },
-    filterChipActive: {
-        borderColor: '#0084C8',
-        backgroundColor: '#FFFFFF',
-    },
-    filterText: {
-        fontSize: 14,
-        color: '#6B7280',
-        fontWeight: '500',
-    },
-    filterTextActive: {
-        color: '#0084C8',
-    },
-    filterBadge: {
-        backgroundColor: '#0084C8',
-        borderRadius: 10,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        marginLeft: 6,
-    },
-    filterBadgeText: {
-        color: '#FFFFFF',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    listContainer: {
-        paddingBottom: 20,
-    },
-    chatItem: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        alignItems: 'flex-start',
-    },
-    avatarContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#E5F1FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 15,
-    },
-    avatarText: {
-        color: '#005988',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    chatDetails: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    chatHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 2,
-    },
-    chatName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#1F2937',
-    },
-    chatTime: {
-        fontSize: 12,
-        color: '#9CA3AF',
-    },
-    roleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 4,
-    },
-    roleBadge: {
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-    },
-    roleText: {
-        fontSize: 10,
-        color: '#111827',
-        fontWeight: '700',
-    },
-    departmentText: {
-        fontSize: 12,
-        color: '#6B7280',
-    },
-    messageRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        position: 'relative',
-        paddingRight: 30,
-    },
-    checkmarks: {
-        fontSize: 12,
-        color: '#D1D5DB', // Very light grey checkmarks
-        marginRight: 4,
-    },
-    lastMessage: {
-        fontSize: 14,
-        color: '#6B7280',
-        flex: 1,
-    },
-    unreadBadgeContainer: {
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        bottom: 0,
-        justifyContent: 'center',
-    },
-    unreadBadge: {
-        backgroundColor: '#0084C8',
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    unreadBadgeText: {
-        color: '#FFFFFF',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    fabOuterGlow: {
-        position: 'absolute',
-        bottom: 24,
-        right: 24,
-        shadowColor: '#DC2626',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.9,
-        shadowRadius: 25,
-        elevation: 15,
-        borderRadius: 40,
-        backgroundColor: '#FFFFFF',
-    },
-    fabButton: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#DC2626',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    fabText: {
-        fontSize: 24,
-        fontWeight: '900',
-        color: '#FFFFFF',
-    },
-    overlayContainer: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 30,
-    },
-    rippleContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 50,
-        height: 160,
-    },
-    ripple: {
-        position: 'absolute',
-        width: 130,
-        height: 130,
-        borderRadius: 65,
-        backgroundColor: '#DC2626',
-    },
-    overlaySosButton: {
-        width: 130,
-        height: 130,
-        borderRadius: 65,
-        backgroundColor: '#DC2626',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 10,
-        shadowColor: '#DC2626',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 20,
-        elevation: 10,
-    },
-    overlaySosText: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-    },
-    overlayTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    overlaySubtitle: {
-        fontSize: 14,
-        color: '#D1D5DB',
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 40,
-    },
-    cancelButton: {
-        paddingVertical: 10,
-        paddingHorizontal: 30,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#FFFFFF',
-        backgroundColor: 'transparent',
-    },
-    cancelButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-    },
-});
+
