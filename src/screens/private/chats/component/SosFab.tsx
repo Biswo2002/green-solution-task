@@ -18,8 +18,9 @@ const SosFab = ({ onPress }: SosFabProps) => {
             <View style={ChatsLandingStyles.fabGlowInner} />
             <LinearGradient
                 colors={['#F62800', '#C11F00']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
+                useAngle
+                angle={180}
+                angleCenter={{ x: 0.5, y: 0.5 }}
                 style={ChatsLandingStyles.fabGradient}
             >
                 <Text style={ChatsLandingStyles.fabText}>SOS</Text>

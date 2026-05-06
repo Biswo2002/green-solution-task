@@ -15,6 +15,7 @@ interface ChatComposerProps {
     onRecordPauseToggle: () => void;
     onRecordCancel: () => void;
     onRecordSend: () => void;
+    onInputFocus?: () => void;
     styles: any;
 }
 
@@ -30,6 +31,7 @@ const ChatComposer = ({
     onRecordPauseToggle,
     onRecordCancel,
     onRecordSend,
+    onInputFocus,
     styles,
 }: ChatComposerProps) => {
     const durationLabel = `${Math.floor(recordDuration / 60)}:${(recordDuration % 60)
@@ -88,6 +90,7 @@ const ChatComposer = ({
                     placeholderTextColor="#9CA3AF"
                     value={inputText}
                     onChangeText={setInputText}
+                    onFocus={onInputFocus}
                     multiline
                 />
             </ZorrroView>

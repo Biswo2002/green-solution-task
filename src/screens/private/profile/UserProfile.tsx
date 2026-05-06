@@ -1,12 +1,18 @@
 import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
 import { ScreenStatusBar, ZorrroView } from '$/components';
 import { ZORRRO_COLORS } from '$/styles';
 
 const UserProfile = () => {
     const navigation = useNavigation<any>();
+    const route = useRoute<any>();
+    const chatId = route.params?.chatId;
+    const chatName = route.params?.chatName || 'Rajesh Kumar';
+    const chatInitials = route.params?.chatInitials || 'PS';
+    const chatRole = route.params?.chatRole || 'Department Admin';
+    const chatDepartment = route.params?.chatDepartment || 'Revenue';
 
     return (
         <ZorrroView safe style={styles.safeArea}>
@@ -22,17 +28,30 @@ const UserProfile = () => {
                 <View style={styles.profileSection}>
                     <View style={styles.avatarContainer}>
                         <View style={styles.avatar}>
-                            <Text style={styles.avatarText}>PS</Text>
+                            <Text style={styles.avatarText}>{chatInitials}</Text>
                         </View>
                         <View style={styles.statusDot} />
                     </View>
-                    <Text style={styles.userName}>Rajesh Kumar</Text>
+                    <Text style={styles.userName}>{chatName}</Text>
                     <View style={styles.roleBadge}>
                         <ZORRRO_SVG.SOS.WARNING width={14} height={14} color="#6B7280" />
-                        <Text style={styles.roleText}>Department Admin</Text>
+                        <Text style={styles.roleText}>{chatRole}</Text>
                     </View>
 
-                    <TouchableOpacity style={styles.chatButton} onPress={() => navigation.navigate('ChatDetails')}>
+                    <TouchableOpacity
+                        style={styles.chatButton}
+                        onPress={() =>
+                            navigation.navigate('ChatDetails', {
+                                chatId,
+                                chatName,
+                                chatInitials,
+                                chatRole,
+                                chatDepartment,
+                                chatSubtitle: [chatRole, chatDepartment].filter(Boolean).join(' • '),
+                                isGroup: false,
+                            })
+                        }
+                    >
                         <Text style={styles.chatButtonIcon}>💬</Text>
                         <Text style={styles.chatButtonText}>Chat</Text>
                     </TouchableOpacity>
@@ -57,7 +76,7 @@ const UserProfile = () => {
                         <Text style={styles.infoIcon}>🏢</Text>
                         <View>
                             <Text style={styles.infoLabel}>Department</Text>
-                            <Text style={styles.infoValue}>Revenue</Text>
+                            <Text style={styles.infoValue}>{chatDepartment}</Text>
                         </View>
                     </View>
                 </View>

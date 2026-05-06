@@ -1,12 +1,18 @@
 import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, TouchableOpacity, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { ZORRRO_SVG } from '$/assets';
 import { ScreenStatusBar, ZorrroView } from '$/components';
 import { ZORRRO_COLORS } from '$/styles';
 
 const GroupProfile = () => {
     const navigation = useNavigation<any>();
+    const route = useRoute<any>();
+    const chatId = route.params?.chatId;
+    const chatName = route.params?.chatName || 'Revenue Officers - Kolkata';
+    const chatInitials = route.params?.chatInitials || '👥';
+    const chatDepartment = route.params?.chatDepartment || 'Revenue';
+    const chatMembersLabel = route.params?.chatMembersLabel || '48 members';
 
     return (
         <ZorrroView safe style={styles.safeArea}>
@@ -22,11 +28,11 @@ const GroupProfile = () => {
                 {/* Profile Info */}
                 <View style={styles.profileSection}>
                     <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>👥</Text>
+                        <Text style={styles.avatarText}>{chatInitials}</Text>
                     </View>
-                    <Text style={styles.groupName}>Revenue Officers - Kolkata</Text>
+                    <Text style={styles.groupName}>{chatName}</Text>
                     <View style={styles.groupBadge}>
-                        <Text style={styles.groupBadgeText}>Revenue</Text>
+                        <Text style={styles.groupBadgeText}>{chatDepartment}</Text>
                     </View>
                 </View>
 
@@ -64,6 +70,15 @@ const GroupProfile = () => {
                             <Text style={styles.detailValue}>Everyone</Text>
                         </View>
                     </View>
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailIconBox}>
+                            <ZORRRO_SVG.TAB_LAYOUT.CHAT width={20} height={20} fill="#6B7280" />
+                        </View>
+                        <View>
+                            <Text style={styles.detailLabel}>Members</Text>
+                            <Text style={styles.detailValue}>{chatMembersLabel}</Text>
+                        </View>
+                    </View>
                 </View>
 
                 {/* Shared Media */}
@@ -85,7 +100,7 @@ const GroupProfile = () => {
 
                 {/* Members Section */}
                 <View style={styles.membersSection}>
-                    <Text style={styles.sectionTitleSubtitle}>Members (48)</Text>
+                    <Text style={styles.sectionTitleSubtitle}>Members • {chatMembersLabel}</Text>
 
                     {/* Admin */}
                     <View style={styles.memberRow}>
@@ -116,6 +131,22 @@ const GroupProfile = () => {
 
                     <TouchableOpacity style={styles.moreMembersBtn} onPress={() => navigation.navigate('GroupMembers')}>
                         <Text style={styles.moreMembersText}>+43 Members</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.moreMembersBtn}
+                        onPress={() =>
+                            navigation.navigate('ChatDetails', {
+                                chatId,
+                                chatName,
+                                chatInitials,
+                                chatDepartment,
+                                chatMembersLabel,
+                                chatSubtitle: chatMembersLabel,
+                                isGroup: true,
+                            })
+                        }
+                    >
+                        <Text style={styles.moreMembersText}>Open Chat</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

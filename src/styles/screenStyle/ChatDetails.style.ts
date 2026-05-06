@@ -25,6 +25,7 @@ export const ChatDetailsStyles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
+        marginRight: 8,
     },
     avatar: {
         width: 40,
@@ -41,16 +42,20 @@ export const ChatDetailsStyles = StyleSheet.create({
         fontFamily: ZORRRO_FONTS?.[700]?.normal,
     },
     headerInfo: {
+        flex: 1,
+        minWidth: 0,
         justifyContent: 'center',
     },
     headerName: {
         fontSize: 16,
         fontFamily: ZORRRO_FONTS?.[600]?.normal,
         color: '#111827',
+        flexShrink: 1,
     },
     headerSubtitle: {
         fontSize: 12,
         color: '#6B7280',
+        flexShrink: 1,
     },
     moreButton: {
         padding: 8,
@@ -62,6 +67,7 @@ export const ChatDetailsStyles = StyleSheet.create({
     },
     chatList: {
         padding: 16,
+        paddingBottom: 8,
     },
     messageBubble: {
         maxWidth: '80%',
@@ -129,7 +135,6 @@ export const ChatDetailsStyles = StyleSheet.create({
                 shadowOpacity: 0.12,
                 shadowRadius: 6,
             }),
-
     },
     leftActionRow: {
         flexDirection: 'row',

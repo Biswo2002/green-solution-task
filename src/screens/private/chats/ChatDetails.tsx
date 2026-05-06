@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-    StyleSheet,
     Text,
     FlatList,
     TouchableOpacity,
+    Keyboard,
     KeyboardAvoidingView,
     Modal,
     TouchableWithoutFeedback,
@@ -16,6 +16,7 @@ import {
     PermissionsAndroid,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ZORRRO_SVG } from '$/assets';
 import {
     pickImageNative,
@@ -79,7 +80,15 @@ const ChatDetails = () => {
 
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
+    const insets = useSafeAreaInsets();
     const isGroup = route.params?.isGroup;
+    const chatName = route.params?.chatName;
+    const chatInitials = route.params?.chatInitials;
+    const chatSubtitle = route.params?.chatSubtitle;
+    const chatRole = route.params?.chatRole;
+    const chatDepartment = route.params?.chatDepartment;
+    const chatMembersLabel = route.params?.chatMembersLabel;
+    const typingDisplayName = chatName?.trim()?.split(' ')?.[0] || 'User';
     const [messages, setMessages] = useState(MOCK_MESSAGES);
     const [inputText, setInputText] = useState('');
 
@@ -106,6 +115,8 @@ const ChatDetails = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [isRecordPaused, setIsRecordPaused] = useState(false);
     const [recordDuration, setRecordDuration] = useState(0);
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+    const messagesListRef = useRef<FlatList<any>>(null);
     const recordingInterval = useRef<any>(null);
     const pulseAnim = useRef(new Animated.Value(1)).current;
     const previewAudioProgressAnim = useRef(new Animated.Value(0)).current;
@@ -212,6 +223,26 @@ const ChatDetails = () => {
         };
         loadRecentImages();
     }, [isAttachmentVisible]);
+
+    const scrollToBottom = () => {
+        setTimeout(() => {
+            messagesListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+    };
+
+    useEffect(() => {
+        const keyboardDidShowSubscription = Keyboard.addListener('keyboardDidShow', () => {
+            setIsKeyboardVisible(true);
+            scrollToBottom();
+        });
+        const keyboardDidHideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+            setIsKeyboardVisible(false);
+        });
+        return () => {
+            keyboardDidShowSubscription.remove();
+            keyboardDidHideSubscription.remove();
+        };
+    }, []);
 
     const sendMessage = (payload: any) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -658,6 +689,20 @@ const ChatDetails = () => {
         </TouchableOpacity>
     );
 
+    const openProfile = () => {
+        const profileParams = {
+            chatId: route.params?.chatId,
+            chatName,
+            chatInitials,
+            chatRole,
+            chatDepartment,
+            chatSubtitle,
+            chatMembersLabel,
+            isGroup,
+        };
+        navigation.navigate(isGroup ? 'GroupProfile' : 'UserProfile', profileParams);
+    };
+
     const renderHeaderMenu = () => (
         <Modal visible={isMenuVisible} transparent animationType="fade">
             <TouchableWithoutFeedback onPress={() => setIsMenuVisible(false)}>
@@ -667,7 +712,7 @@ const ChatDetails = () => {
                             style={ChatDetailsStyles.menuItem}
                             onPress={() => {
                                 setIsMenuVisible(false);
-                                navigation.navigate(isGroup ? 'GroupProfile' : 'UserProfile');
+                                openProfile();
                             }}
                         >
                             <Text style={ChatDetailsStyles.menuText}>
@@ -1025,15 +1070,16 @@ const ChatDetails = () => {
     );
 
     return (
-        <ZorrroView safe style={ChatDetailsStyles.safeArea}>
+        <ZorrroView safe edges={['top', 'left', 'right']} style={ChatDetailsStyles.safeArea}>
             <ScreenStatusBar backgroundColor={ZORRRO_COLORS?.WHITE} barStyle="dark-content" />
 
             <ChatDetailsHeader
                 isGroup={isGroup}
+                chatName={chatName}
+                chatInitials={chatInitials}
+                chatSubtitle={chatSubtitle}
                 onBackPress={() => navigation.goBack()}
-                onProfilePress={() =>
-                    navigation.navigate(isGroup ? 'GroupProfile' : 'UserProfile')
-                }
+                onProfilePress={openProfile}
                 onMenuPress={() => setIsMenuVisible(true)}
                 styles={ChatDetailsStyles}
             />
@@ -1044,37 +1090,42 @@ const ChatDetails = () => {
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
                 <FlatList
+                    ref={messagesListRef}
                     data={messages}
                     keyExtractor={item => item.id}
                     renderItem={renderMessage}
                     contentContainerStyle={ChatDetailsStyles.chatList}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    onContentSizeChange={scrollToBottom}
                     ListFooterComponent={() =>
                         isTyping ? (
                             <ZorrroView style={ChatDetailsStyles.typingIndicatorContainer}>
                                 <Text style={ChatDetailsStyles.typingText}>
-                                    {isGroup ? 'Someone is typing...' : 'Priya is typing...'}
+                                    {isGroup ? 'Someone is typing...' : `${typingDisplayName} is typing...`}
                                 </Text>
                             </ZorrroView>
                         ) : null
                     }
                 />
 
-                <ChatComposer
-                    isRecording={isRecording}
-                    isRecordPaused={isRecordPaused}
-                    inputText={inputText}
-                    setInputText={setInputText}
-                    recordDuration={recordDuration}
-                    onAttachmentPress={() => setIsAttachmentVisible(true)}
-                    onSendPress={handleSend}
-                    onRecordStart={() => handleRecordStart(0)}
-                    onRecordPauseToggle={handleRecordPauseToggle}
-                    onRecordCancel={handleRecordCancel}
-                    onRecordSend={handleRecordSend}
-                    styles={ChatDetailsStyles}
-                />
+                <ZorrroView style={{ paddingBottom: isKeyboardVisible ? 0 : insets.bottom }}>
+                    <ChatComposer
+                        isRecording={isRecording}
+                        isRecordPaused={isRecordPaused}
+                        inputText={inputText}
+                        setInputText={setInputText}
+                        recordDuration={recordDuration}
+                        onAttachmentPress={() => setIsAttachmentVisible(true)}
+                        onSendPress={handleSend}
+                        onRecordStart={() => handleRecordStart(0)}
+                        onRecordPauseToggle={handleRecordPauseToggle}
+                        onRecordCancel={handleRecordCancel}
+                        onRecordSend={handleRecordSend}
+                        onInputFocus={scrollToBottom}
+                        styles={ChatDetailsStyles}
+                    />
+                </ZorrroView>
             </KeyboardAvoidingView>
 
             {renderHeaderMenu()}
@@ -1087,5 +1138,3 @@ const ChatDetails = () => {
 };
 
 export default ChatDetails;
-
-
