@@ -4,7 +4,7 @@ import { SplashScreen, PermissionsScreen } from './screens/public';
 import AppStorage, { appStorageReady } from './utils/AppStorage';
 import { STORAGE_KEYS } from './utils/storageKeys';
 
-/** Matches SportUp: full intro splash only before first-time permissions; return visits go straight to the app. */
+/** Keep splash visible for full intro duration before routing. */
 const FIRST_LAUNCH_SPLASH_MIN_MS = 6000;
 
 const Routes = () => {
@@ -20,6 +20,10 @@ const Routes = () => {
     let cancelled = false;
 
     const runBootstrap = async () => {
+      const splashDelay = new Promise<void>(resolve => {
+        setTimeout(resolve, FIRST_LAUNCH_SPLASH_MIN_MS);
+      });
+
       await appStorageReady;
       if (cancelled) return;
 
@@ -27,15 +31,14 @@ const Routes = () => {
         STORAGE_KEYS.CORE_PERMISSIONS_REQUESTED,
       );
       if (cancelled) return;
+
+      await splashDelay;
+      if (cancelled) return;
+
       if (permissionFlag === true) {
         setAppState('ready');
         return;
       }
-
-      await new Promise<void>(resolve => {
-        setTimeout(resolve, FIRST_LAUNCH_SPLASH_MIN_MS);
-      });
-      if (cancelled) return;
 
       setAppState('permissions');
     };
