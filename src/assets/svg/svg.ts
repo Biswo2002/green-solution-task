@@ -23,7 +23,7 @@ import MEDICAL from './medical.svg';
 import HISTORY from './history.svg';
 import REVENUE from './domain.svg';
 import SEARCH from './search.svg';
-import CHATS from './message.svg';
+import CHATS_ACTIVE from './message.svg';
 import CAMERA from './camera.svg';
 import OTHER from './other.svg';
 import CHILD from './child.svg';
@@ -33,16 +33,28 @@ import MORE from './more.svg';
 import AUDIO from './mic.svg';
 import PHONE from './call.svg';
 import SEND from './send.svg';
+import DELETE from './delete.svg';
+import PAUSE from './pause.svg';
+import RESUME from './resume.svg';
 import SOS from './sos.svg';
 import DONE_ALL from './done_all.svg';
+import CHAT from './chat-inactive.svg';
+import CHANNELS_ACTIVE from './channel-active.svg';
+import PROFILE_ACTIVE from './profile-active.svg';
+import SOS_ACTIVE from './sos-active.svg';
+import BACK_ARROW from './arrow_left_alt.svg';
 export default {
    BENGAL_MAP,
    WB_LOGO,
    TAB_LAYOUT: {
       CHANNELS,
+      CHANNELS_ACTIVE,
       PROFILE,
-      CHATS,
+      PROFILE_ACTIVE,
+      CHAT,
+      CHATS_ACTIVE,
       SOS,
+      SOS_ACTIVE,
    },
 
    PROFILE_TAB: {
@@ -63,6 +75,9 @@ export default {
       CAMERA,
       AUDIO,
       SEND,
+      DELETE,
+      PAUSE,
+      RESUME,
    },
 
    SCREENS: {
@@ -75,6 +90,7 @@ export default {
       MORE,
       LINK,
       DONE_ALL,
+      BACK_ARROW
    },
    SOS: {
       WARNING,
