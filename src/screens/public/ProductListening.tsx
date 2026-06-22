@@ -51,9 +51,14 @@ const ProductListening = () => {
 
   // refresh
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    getProducts();
+
+    try {
+      await getProducts();
+    } finally {
+      setRefreshing(false);
+    }
   };
   // search Product
   const searchProduct = (text: string) => {
