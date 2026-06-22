@@ -1,4 +1,4 @@
-package com.mdmchat
+package com.practices
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule

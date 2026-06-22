@@ -1,4 +1,4 @@
-package com.mdmchat
+package com.practices
 
 import android.Manifest
 import android.content.pm.PackageManager

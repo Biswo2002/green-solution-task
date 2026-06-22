@@ -1,4 +1,4 @@
-package com.mdmchat
+package com.practices
 
 import android.app.Application
 import com.facebook.react.PackageList
