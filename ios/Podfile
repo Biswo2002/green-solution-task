@@ -8,6 +8,12 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
+# Prebuilt RN tarballs use file:// URIs that break when the project path contains spaces.
+if Pod::Config.instance.installation_root.to_s.include?(' ')
+  ENV['RCT_USE_PREBUILT_RNCORE'] = '0'
+  ENV['RCT_USE_RN_DEP'] = '0'
+end
+
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
