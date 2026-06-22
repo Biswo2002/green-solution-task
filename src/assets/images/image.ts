@@ -1,3 +1,3 @@
 export default {
-   WB_LOGO: require('./wb-logo.png'),
+  // WB_LOGO: require('./wb-logo.png'),
 };
