@@ -10,14 +10,18 @@ type PublicRouteProps = {
 };
 
 export default function PublicRoutes({
-  initialRouteName = 'SplashScreen',
+  initialRouteName = 'ProductListening',
 }: PublicRouteProps) {
   return (
     <Stack.Navigator
       initialRouteName={initialRouteName as keyof AppRoutesTypes}
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="SplashScreen" component={Public.SplashScreen} />
+      <Stack.Screen
+        name="ProductListening"
+        component={Public.ProductListening}
+      />
+      <Stack.Screen name="ProductDetails" component={Public.ProductDetails} />
     </Stack.Navigator>
   );
 }
